@@ -1,7 +1,9 @@
 // @ts-check
+const path = require('path');
 const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
+  outputDir: path.join(__dirname, 'test-results'),
   testDir: '.',
   testMatch: '**/todomvc.spec.js',
   fullyParallel: true,

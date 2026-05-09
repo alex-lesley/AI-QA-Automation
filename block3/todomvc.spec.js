@@ -101,17 +101,29 @@ test.describe('Positive flows', () => {
     await expect(todoRow(page, 'Book dentist')).toBeVisible();
     await expect(page.locator('.todo-list li')).toHaveCount(4);
   });
+
+  test('TC-007: Completed view hides active todos; completed rows stay visible', async ({
+    page,
+  }) => {
+    await addTodo(page, 'Still open');
+    await addTodo(page, 'Already done');
+    await todoRow(page, 'Already done').locator('.toggle').click();
+    await page.getByRole('link', { name: 'Completed' }).click();
+    await expect(page).toHaveURL(/\/completed/);
+    await expect(todoRow(page, 'Already done')).toBeVisible();
+    await expect(todoRow(page, 'Still open')).toHaveCount(0);
+  });
 });
 
 test.describe('Negative flows', () => {
-  test('TC-007: no row created for whitespace-only submit', async ({ page }) => {
+  test('TC-008: no row created for whitespace-only submit', async ({ page }) => {
     const before = await page.locator('.todo-list li').count();
     await page.getByPlaceholder('What needs to be done?').fill('   ');
     await page.getByPlaceholder('What needs to be done?').press('Enter');
     await expect(page.locator('.todo-list li')).toHaveCount(before);
   });
 
-  test('TC-007b: whitespace-only does not add row when list non-empty', async ({
+  test('TC-008 (non-empty list): whitespace-only does not add row', async ({
     page,
   }) => {
     await addTodo(page, 'Existing');
@@ -120,7 +132,7 @@ test.describe('Negative flows', () => {
     await expect(page.locator('.todo-list li')).toHaveCount(1);
   });
 
-  test('TC-008: completing one todo does not complete others', async ({ page }) => {
+  test('TC-009: completing one todo does not complete others', async ({ page }) => {
     await addTodo(page, 'First');
     await addTodo(page, 'Second');
     await todoRow(page, 'First').locator('.toggle').click();
@@ -128,7 +140,7 @@ test.describe('Negative flows', () => {
     await expect(todoRow(page, 'Second')).not.toHaveClass(/completed/);
   });
 
-  test('TC-009: deleting one todo does not remove neighbors', async ({ page }) => {
+  test('TC-010: deleting one todo does not remove neighbors', async ({ page }) => {
     await addTodo(page, 'Alpha todo');
     await addTodo(page, 'Bravo todo');
     await addTodo(page, 'Charlie todo');
@@ -140,7 +152,7 @@ test.describe('Negative flows', () => {
     expect(titles).toEqual(['Alpha todo', 'Charlie todo']);
   });
 
-  test('TC-010: footer filters switch All / Active / Completed routes', async ({ page }) => {
+  test('TC-011: footer filters switch All / Active / Completed routes', async ({ page }) => {
     await addTodo(page, 'Active task');
     await addTodo(page, 'Completed task');
     await todoRow(page, 'Completed task').locator('.toggle').click();
@@ -152,17 +164,17 @@ test.describe('Negative flows', () => {
     await page.getByRole('link', { name: 'All' }).click();
     await expect(page).toHaveURL(/#\/$/);
     // Full persistence across filter toggles is not asserted: the hosted Playwright TodoMVC
-    // demo can drop items when returning to All (see block3/todomvc-test-plan.md TC-010 intent).
+    // demo can drop items when returning to All (see block3/todomvc-test-plan.md TC-011 intent).
   });
 });
 
 test.describe('Edge cases', () => {
-  test('TC-011: leading and trailing spaces trimmed on new todo', async ({ page }) => {
+  test('TC-012: leading and trailing spaces trimmed on new todo', async ({ page }) => {
     await addTodo(page, '   Pick up dry cleaning   ');
     await expect(todoRow(page, 'Pick up dry cleaning')).toBeVisible();
   });
 
-  test('TC-012: duplicate titles allowed as separate rows', async ({ page }) => {
+  test('TC-013: duplicate titles allowed as separate rows', async ({ page }) => {
     const before = await page.locator('.todo-list li').count();
     await addTodo(page, 'Water plants');
     await addTodo(page, 'Water plants');
@@ -172,13 +184,13 @@ test.describe('Edge cases', () => {
     ).toHaveCount(2);
   });
 
-  test('TC-013: special characters preserved in label', async ({ page }) => {
+  test('TC-014: special characters preserved in label', async ({ page }) => {
     const text = 'Budget: 50% @home "urgent" & review <script>';
     await addTodo(page, text);
     await expect(todoRow(page, text).getByTestId('todo-title')).toHaveText(text);
   });
 
-  test('TC-014: long single-line todo is stored and visible', async ({ page }) => {
+  test('TC-015: long single-line todo is stored and visible', async ({ page }) => {
     const longText = 'a'.repeat(500);
     await addTodo(page, longText);
     const row = todoRow(page, longText);
@@ -186,7 +198,7 @@ test.describe('Edge cases', () => {
     await expect(row.getByTestId('todo-title')).toHaveText(longText);
   });
 
-  test('TC-015: inline edit saves on Enter and cancels on Escape', async ({ page }) => {
+  test('TC-016: inline edit saves on Enter and cancels on Escape', async ({ page }) => {
     await addTodo(page, 'Edit me please');
     await page.getByTestId('todo-title').filter({ hasText: 'Edit me please' }).dblclick();
     const editor = todoRow(page, 'Edit me please').locator('input.edit');
@@ -199,15 +211,6 @@ test.describe('Edge cases', () => {
     await editor2.press('Escape');
     await expect(todoRow(page, 'Edited via keyboard')).toBeVisible();
     await expect(todoRow(page, 'Should not save')).toHaveCount(0);
-  });
-
-  test('TC-016: Completed view lists only finished items', async ({ page }) => {
-    await addTodo(page, 'Still open');
-    await addTodo(page, 'Already done');
-    await todoRow(page, 'Already done').locator('.toggle').click();
-    await page.getByRole('link', { name: 'Completed' }).click();
-    await expect(todoRow(page, 'Already done')).toBeVisible();
-    await expect(todoRow(page, 'Still open')).toHaveCount(0);
   });
 
   test('TC-017: zero items left when last active is completed; clear empties completed', async ({

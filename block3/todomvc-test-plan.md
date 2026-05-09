@@ -109,11 +109,22 @@ This plan covers the public demo at [https://demo.playwright.dev/todomvc/#/](htt
   - Clicking **All** shows every todo again.
 - **Priority:** Medium
 
+### TC-007
+
+- **Title:** Completed-only view lists only finished items
+- **Preconditions:**
+  - At least one completed and one active todo.
+- **Steps:**
+  1. Click **Completed**.
+- **Expected result:**
+  - Only completed rows appear; active todos are hidden until **All** or **Active** is selected.
+- **Priority:** Medium
+
 ---
 
 ## Negative flows
 
-### TC-007
+### TC-008
 
 - **Title:** No todo row is created when only spaces are submitted
 - **Preconditions:**
@@ -126,7 +137,7 @@ This plan covers the public demo at [https://demo.playwright.dev/todomvc/#/](htt
   - Row count is unchanged (whitespace-only input is not added as a todo).
 - **Priority:** High
 
-### TC-008
+### TC-009
 
 - **Title:** Completing one todo does not complete other todos
 - **Preconditions:**
@@ -138,7 +149,7 @@ This plan covers the public demo at [https://demo.playwright.dev/todomvc/#/](htt
   - Only the targeted row is `completed`; others stay active.
 - **Priority:** High
 
-### TC-009
+### TC-010
 
 - **Title:** Deleting one todo does not remove adjacent todos
 - **Preconditions:**
@@ -150,7 +161,7 @@ This plan covers the public demo at [https://demo.playwright.dev/todomvc/#/](htt
   - Only **Bravo todo** is removed; remaining labels and order for survivors match expectations.
 - **Priority:** High
 
-### TC-010
+### TC-011
 
 - **Title:** Filter does not mutate data—switching views does not delete todos
 - **Preconditions:**
@@ -167,7 +178,7 @@ This plan covers the public demo at [https://demo.playwright.dev/todomvc/#/](htt
 
 ## Edge cases
 
-### TC-011
+### TC-012
 
 - **Title:** Leading and trailing spaces on new todo text are trimmed when saved
 - **Preconditions:**
@@ -179,7 +190,7 @@ This plan covers the public demo at [https://demo.playwright.dev/todomvc/#/](htt
   - New row label displays `Pick up dry cleaning` (no leading/trailing spaces).
 - **Priority:** Medium
 
-### TC-012
+### TC-013
 
 - **Title:** Duplicate text is allowed for two separate todos
 - **Preconditions:**
@@ -191,7 +202,7 @@ This plan covers the public demo at [https://demo.playwright.dev/todomvc/#/](htt
   - Two rows both show **Water plants**; counter reflects two additional items.
 - **Priority:** Low
 
-### TC-013
+### TC-014
 
 - **Title:** Special characters and symbols are preserved in the todo label
 - **Preconditions:**
@@ -202,7 +213,7 @@ This plan covers the public demo at [https://demo.playwright.dev/todomvc/#/](htt
   - Label renders as entered text (no unintended HTML execution; characters visible as plain text).
 - **Priority:** Medium
 
-### TC-014
+### TC-015
 
 - **Title:** Very long single-line todo is accepted and displayed
 - **Preconditions:**
@@ -214,7 +225,7 @@ This plan covers the public demo at [https://demo.playwright.dev/todomvc/#/](htt
   - One new row exists; text is stored and visible (scroll or wrap behavior is acceptable; no silent truncation without UI indication).
 - **Priority:** Low
 
-### TC-015
+### TC-016
 
 - **Title:** Inline edit saves on Enter and cancels on Escape
 - **Preconditions:**
@@ -227,17 +238,6 @@ This plan covers the public demo at [https://demo.playwright.dev/todomvc/#/](htt
 - **Expected result:**
   - After step 3, label reads **Edited via keyboard**.
   - After step 4, label remains **Edited via keyboard** (discard on Escape).
-- **Priority:** Medium
-
-### TC-016
-
-- **Title:** Completed-only view lists only finished items
-- **Preconditions:**
-  - At least one completed and one active todo.
-- **Steps:**
-  1. Click **Completed**.
-- **Expected result:**
-  - Only completed rows appear; active todos are hidden until **All** or **Active** is selected.
 - **Priority:** Medium
 
 ### TC-017
