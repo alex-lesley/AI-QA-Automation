@@ -1,0 +1,14 @@
+{
+  "name": "block3",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright E2E for TodoMVC (block3)",
+  "type": "commonjs",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
+}
