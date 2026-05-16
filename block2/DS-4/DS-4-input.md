@@ -1,10 +1,7 @@
-## Role
-
-You are a senior QA engineer reviewing the feature described below.
-
 ## Task
 
 Create a detailed test plan for the Delete program with confirmation feature.
+Do not use any information stored in my files, use these instuctions only.
 
 ## Acceptance Criteria
 
@@ -24,8 +21,6 @@ Scenario: Cancel program deletion
 ## Requirements for the test plan
 
 - Cover every AC with at least one test case
-- Add edge cases the ACs don't mention
-  (boundary values, empty inputs, special characters, duplicates, max-length)
 - Add negative test cases (what should NOT happen)
 - Structure each test case as:
   - ID (TC-001, TC-002, etc.)

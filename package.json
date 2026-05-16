@@ -9,8 +9,13 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:e2e": "npm run test:e2e -w block3",
-    "test:e2e:ui": "npm run test:e2e:ui -w block3"
+    "test:e2e": "playwright test --output=test-results",
+    "test:e2e:ui": "playwright test --ui --output=test-results",
+    "test:e2e:didaxis": "playwright test tests/ds1-create-program.spec.ts --output=test-results",
+    "test:e2e:didaxis-ds2": "playwright test tests/ds2-edit-program.spec.ts --output=test-results",
+    "test:e2e:didaxis-ds3": "playwright test tests/ds3-names-validation.spec.ts --output=test-results",
+    "test:e2e:block3": "npm run test:e2e -w block3",
+    "test:e2e:ui:block3": "npm run test:e2e:ui -w block3"
   },
   "repository": {
     "type": "git",
@@ -23,5 +28,11 @@
   "bugs": {
     "url": "https://github.com/alex-lesley/AI-QA-Automation/issues"
   },
-  "homepage": "https://github.com/alex-lesley/AI-QA-Automation#readme"
+  "homepage": "https://github.com/alex-lesley/AI-QA-Automation#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
 }
