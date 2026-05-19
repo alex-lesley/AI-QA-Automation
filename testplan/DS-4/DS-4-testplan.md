@@ -3,7 +3,7 @@
 **Feature:** Delete a program only after an explicit confirmation step.  
 **Primary program name used in tests:** Test Program  
 **Confirmation dialog (specified copy and controls):**
-- Message: `Are you sure about deleting the program <program name>` (with the actual program name substituted for `<program name>`).
+- Message: `Delete program <program name>? All its semesters and courses will be removed. This cannot be undone.` (with the actual program name substituted for `<program name>`).
 - **Confirm** button  
 - **Cancel** button  
 
@@ -24,7 +24,7 @@
 2. Locate the row or card for **Test Program**.  
 3. Click the **delete** icon (trash/delete control) for **Test Program**.  
 4. Verify the confirmation dialog appears.  
-5. Verify the dialog message is exactly: `Are you sure about deleting the program Test Program`.  
+5. Verify the dialog message is exactly: `Delete program "Test Program"? All its semesters and courses will be removed. This cannot be undone.`.  
 6. Verify **Confirm** and **Cancel** are visible and enabled.  
 7. Click **Confirm**.  
 
@@ -47,7 +47,7 @@
 **Steps:**  
 1. Open the program list.  
 2. Click the **delete** icon for **Test Program**.  
-3. Verify the confirmation dialog appears with message `Are you sure about deleting the program Test Program`.  
+3. Verify the confirmation dialog appears with message `Delete program "Test Program"? All its semesters and courses will be removed. This cannot be undone.`.  
 4. Click **Cancel**.  
 
 **Expected result:**  
@@ -70,7 +70,7 @@
 2. Click the **delete** icon for **Alpha Schedule** only.  
 
 **Expected result:**  
-- Dialog message is `Are you sure about deleting the program Alpha Schedule` (not Test Program or Beta Schedule).  
+- Dialog message is `Delete program "Alpha Schedule"? All its semesters and courses will be removed. This cannot be undone.` (not Test Program or Beta Schedule).  
 - **Confirm** and **Cancel** are shown.  
 
 **Priority:** Medium  
@@ -172,7 +172,7 @@
 2. Click **delete** for that program.  
 
 **Expected result:**  
-- Message is `Are you sure about deleting the program North Region Holiday Overtime Program Q1-Q2 2026 Extended Pilot` (full name, not truncated in a way that changes meaning; UI may wrap text).  
+- Message is `Delete program "North Region Holiday Overtime Program Q1-Q2 2026 Extended Pilot"? All its semesters and courses will be removed. This cannot be undone.` (full name, not truncated in a way that changes meaning; UI may wrap text).  
 - **Confirm** and **Cancel** remain visible and usable (e.g., scroll within dialog if needed).  
 
 **Priority:** Low  
