@@ -33,7 +33,7 @@ Do NOT hardcode credentials in the test file.
 Do NOT expose the credentials in the test artifacts such as report and traces. Use placeholders <EMAIL> and <PASSWORD> instead.
 
 ## Test plan
-See in DS-2-output.md
+See in DS-2-testplan.md
 
 ## Requirements
 
