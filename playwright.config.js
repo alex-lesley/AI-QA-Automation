@@ -1,11 +1,13 @@
 // @ts-check
+/// <reference types="node" />
 const path = require('path');
 const dotenv = require('dotenv');
 
-dotenv.config({
-  path: path.resolve(__dirname, '.env'),
-  quiet: !!process.env.CI,
-});
+const envPath = path.resolve(__dirname, '.env');
+const envResult = dotenv.config({ path: envPath, quiet: !!process.env.CI });
+if (envResult.error && !process.env.CI) {
+  console.warn(`[playwright] Could not load ${envPath}:`, envResult.error.message);
+}
 
 const { defineConfig, devices } = require('@playwright/test');
 

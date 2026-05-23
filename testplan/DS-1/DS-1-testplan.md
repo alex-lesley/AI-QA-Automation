@@ -1,5 +1,12 @@
 ## Test Plan — Create New Academic Program
 
+**Jira:** [DS-1](https://legionqaschool.atlassian.net/browse/DS-1) — Create new academic program  
+**Status:** In Progress · **Priority:** High · **Labels:** mvp, program-setup
+
+**User story:** As an admin user, I want to create a new academic program so that I can begin designing its curriculum structure.
+
+**Related defects (from Jira links):** DS-16 (modal dismiss >2s), DS-17 (double-click duplicates), DS-18 (duplicate name clears Description), DS-19 (substring row matching), SS-26 (double-click duplicate submit)
+
 ### Scope
 
 Validate the **Create new academic program** flow on Didaxis Studio: navigating to the creation form as an admin, submitting valid **Program Name** and **Description** values, list refresh after save, and validation that blocks creation when **Program Name** is empty.

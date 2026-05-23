@@ -15,7 +15,8 @@
     "test:e2e:didaxis-ds2": "playwright test tests/ds2-edit-program.spec.ts --output=test-results",
     "test:e2e:didaxis-ds3": "playwright test tests/ds3-names-validation.spec.ts --output=test-results",
     "test:e2e:block3": "npm run test:e2e -w block3",
-    "test:e2e:ui:block3": "npm run test:e2e:ui -w block3"
+    "test:e2e:ui:block3": "npm run test:e2e:ui -w block3",
+    "test:e2e:report": "playwright show-report"
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,7 @@
     "dotenv": "^17.4.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.59.1"
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.9.1"
   }
 }

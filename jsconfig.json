@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2022",
+    "checkJs": true,
+    "types": ["node"]
+  },
+  "include": ["**/*.js", "tests/**/*.ts"],
+  "exclude": ["node_modules", "test-results", "playwright-report"]
+}

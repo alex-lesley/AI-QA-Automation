@@ -1,0 +1,11 @@
+{
+  "terminal.integrated.env.windows": {
+    "PATH": "C:\\Program Files\\nodejs;${env:PATH}"
+  },
+  "playwright.env": {
+    "PATH": "C:\\Program Files\\nodejs;${env:PATH}"
+  },
+  "playwright.reuseBrowser": false,
+  "playwright.showTrace": true,
+  "explorer.excludeGitIgnored": false
+}
