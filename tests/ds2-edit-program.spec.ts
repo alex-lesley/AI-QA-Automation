@@ -36,7 +36,7 @@ function programRow(page: Page, programName: string) {
 }
 
 function editButtonForProgram(page: Page, programName: string) {
-  return programRow(page, programName).getByRole('button', { name: '✏️' }).first();
+  return programRow(page, programName).getByRole('button', { name: `Edit ${programName}` });
 }
 
 function createFormFields(dialog: Locator) {
