@@ -257,13 +257,17 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
   }) => {
     const existingName = uniqueName('Web Development 2026');
     await createProgram(page, existingName);
-    const rowsBefore = await countProgramRows(page, existingName);
+    await expect(programRow(page, existingName)).toHaveCount(1);
 
     const dialog = await openCreateModal(page);
     await fillCreateForm(dialog, { name: existingName, description: VALID_DESCRIPTION });
     await clickCreate(dialog);
 
-    await expectCreateBlocked(page, dialog, existingName, rowsBefore);
+    await expect(programRow(page, existingName)).toHaveCount(1, { timeout: 15_000 });
+    await expect(
+      dialog.getByText(/already exists|duplicate|unique|name is taken/i).first(),
+    ).toBeVisible();
+    await expect(dialog).toBeVisible();
   });
 
   test('TC-006: Duplicate Name is rejected when case differs only', async ({ page }) => {

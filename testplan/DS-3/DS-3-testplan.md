@@ -79,7 +79,8 @@ API/network failure behavior and other fields are out of scope.
   3. Click `Create`.
 - **Expected result:**
   - Form is not submitted.
-  - Error shown: name already exists.
+  - Duplicate-name error is visible in the create form (e.g. name already exists).
+  - Programs list contains exactly one program with that name; no duplicate row is created.
 - **Priority:** High
 
 ### TC-006
