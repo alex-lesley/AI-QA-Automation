@@ -1,4 +1,9 @@
-import { test, expect, type Locator, type Page } from '@playwright/test';
+import { type Locator, type Page } from '@playwright/test';
+import { test, expect } from './fixtures';
+import {
+  attachCreatedProgramTracker,
+  detachAndCleanupCreatedPrograms,
+} from './support/created-program-cleanup';
 
 const EMAIL_PLACEHOLDER = '<EMAIL>';
 const PASSWORD_PLACEHOLDER = '<PASSWORD>';
@@ -356,6 +361,7 @@ test.describe('Didaxis Studio — edit program', () => {
     const contextB = await browser.newContext();
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
+    attachCreatedProgramTracker(pageA);
 
     try {
       await loginAsAdmin(pageA);
@@ -393,6 +399,7 @@ test.describe('Didaxis Studio — edit program', () => {
       }
       expect(staleOverwrite).toBeFalsy();
     } finally {
+      await detachAndCleanupCreatedPrograms(pageA);
       await contextA.close();
       await contextB.close();
     }
