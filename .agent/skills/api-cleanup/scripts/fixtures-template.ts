@@ -1,13 +1,13 @@
 /**
  * Generic Playwright fixtures template for API cleanup.
- * Copy to tests/fixtures.ts and wire to your support module exports.
+ * Copy to fixtures/index.ts and wire to your support module exports.
  */
 import { test as base, expect } from '@playwright/test';
 import {
   attachResourceTracker,
   cleanupRemainingResources,
   detachAndCleanupResources,
-} from './support/RESOURCE-cleanup';
+} from '../support/RESOURCE-cleanup';
 
 type WorkerFixtures = {
   _workerResourceCleanup: void;

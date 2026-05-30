@@ -1,7 +1,7 @@
 /**
  * Generic Playwright API cleanup template.
- * Copy tracker logic to tests/support/{resource}-cleanup.ts,
- * then wire it in tests/fixtures.ts (see api-cleanup skill).
+ * Copy tracker logic to support/{resource}-cleanup.ts,
+ * then wire it in fixtures/index.ts (see api-cleanup skill).
  */
 import type { Page } from '@playwright/test';
 

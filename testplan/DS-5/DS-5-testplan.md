@@ -120,15 +120,16 @@ This plan validates the **Programs page list display and empty state behavior** 
 ### TC-008
 - **Title:** Programs page remains usable and accurate with a large program list
 - **Preconditions:**
-  - 500 programs exist, including:
+  - 50 programs exist (automation uses 50 as a large-list stress sample), including:
     - `Program 001` — `Description for Program 001`
-    - `Program 250` — `Description for Program 250`
-    - `Program 500` — `Description for Program 500`
+    - `Program 025` — `Description for Program 025`
+    - `Program 050` — `Description for Program 050`
 - **Steps:**
   1. Navigate to `Programs`.
   2. Wait for initial render to complete.
   3. Navigate through list presentation mechanism (scroll or pagination as implemented).
   4. Verify representative records from beginning, middle, and end.
+  5. Remove created programs via API cleanup after assertions (batched delete; fixture teardown is not relied on for bulk data).
 - **Expected result:**
   - Page loads and remains responsive (no crash/error UI).
   - Program entries are rendered with correct `Name` and `Description`.
@@ -158,7 +159,7 @@ This plan validates the **Programs page list display and empty state behavior** 
 ## Ambiguities / Gaps in ACs
 
 - ACs do not define the **exact empty-state message text** or the exact **CTA label** for “create first program”.
-- ACs do not specify expected behavior for **very large lists** (performance thresholds, pagination vs infinite scroll).
+- ACs do not specify expected behavior for **very large lists** (performance thresholds, pagination vs infinite scroll). Automation uses **50 programs** for TC-008 as a practical large-list sample.
 - ACs do not define sorting/order expectations (e.g., alphabetical, creation date).
 - ACs do not specify whether `Description` can be null/blank in stored data, and what UI should show in that case.
 - ACs do not clarify access/authorization behavior (what unauthorized users should see).

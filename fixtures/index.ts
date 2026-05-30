@@ -3,7 +3,7 @@ import {
   attachCreatedProgramTracker,
   cleanupRemainingCreatedPrograms,
   detachAndCleanupCreatedPrograms,
-} from './support/created-program-cleanup';
+} from '../support/created-program-cleanup';
 
 type WorkerFixtures = {
   _workerCreatedProgramCleanup: void;

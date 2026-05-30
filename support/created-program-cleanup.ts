@@ -4,7 +4,7 @@ import {
   deleteProgramViaApi,
   getBaseUrl,
   requireApiToken,
-} from '../../.agent/skills/didaxis-delete-all-programs/scripts/didaxis-programs-api';
+} from '../.agent/skills/didaxis-delete-all-programs/scripts/didaxis-programs-api';
 
 class CreatedProgramTracker {
   private readonly ids = new Set<string>();
@@ -47,6 +47,13 @@ class CreatedProgramTracker {
     return () => page.off('response', handler);
   }
 
+  releaseIds(programIds: string[]): void {
+    for (const programId of programIds) {
+      this.ids.delete(programId);
+      globalCreatedProgramIds.delete(programId);
+    }
+  }
+
   async cleanup(): Promise<void> {
     if (this.ids.size === 0) {
       return;
@@ -72,6 +79,8 @@ async function waitForPendingTracks(timeoutMs = 10_000): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 100));
 }
 
+const DELETE_BATCH_SIZE = 20;
+
 async function deleteTrackedPrograms(programIds: string[]): Promise<void> {
   if (programIds.length === 0) {
     return;
@@ -80,16 +89,45 @@ async function deleteTrackedPrograms(programIds: string[]): Promise<void> {
   const baseUrl = getBaseUrl();
   const headers = buildApiHeaders(requireApiToken());
 
-  await Promise.all(
-    programIds.map(async (programId) => {
-      try {
-        await deleteProgramViaApi(baseUrl, headers, programId);
-        globalCreatedProgramIds.delete(programId);
-      } catch {
-        // Keep in globalCreatedProgramIds for afterAll retry.
-      }
-    }),
-  );
+  for (let index = 0; index < programIds.length; index += DELETE_BATCH_SIZE) {
+    const batch = programIds.slice(index, index + DELETE_BATCH_SIZE);
+    await Promise.all(
+      batch.map(async (programId) => {
+        try {
+          await deleteProgramViaApi(baseUrl, headers, programId);
+          globalCreatedProgramIds.delete(programId);
+        } catch {
+          // Keep in globalCreatedProgramIds for worker teardown retry.
+        }
+      }),
+    );
+  }
+}
+
+export function trackCreatedProgramId(page: Page, programId: string): void {
+  const tracker = trackerByPage.get(page);
+  if (tracker) {
+    tracker.track(programId);
+  } else {
+    globalCreatedProgramIds.add(programId);
+  }
+}
+
+/** Remove IDs already deleted during the test so fixture teardown skips them. */
+export function releaseTrackedProgramIds(page: Page, programIds: string[]): void {
+  if (programIds.length === 0) {
+    return;
+  }
+
+  const tracker = trackerByPage.get(page);
+  if (tracker) {
+    tracker.releaseIds(programIds);
+    return;
+  }
+
+  for (const programId of programIds) {
+    globalCreatedProgramIds.delete(programId);
+  }
 }
 
 export function attachCreatedProgramTracker(page: Page): void {

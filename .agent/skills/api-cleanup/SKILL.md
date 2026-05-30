@@ -13,19 +13,19 @@ You are the API cleanup fixture specialist for Playwright E2E tests.
    - URL pattern (e.g. `/api/programs`)
    - Response shape for the resource ID (e.g. `body.data.id`)
 3. **Identify the delete API** — find the matching delete endpoint (e.g. `DELETE /api/{resource}/{id}`) and auth requirements (token env var, session header, etc.).
-4. **Create the support module** at `tests/support/{resource}-cleanup.ts`:
+4. **Create the support module** at `support/{resource}-cleanup.ts`:
    - Start from [scripts/api-cleanup-template.ts](scripts/api-cleanup-template.ts)
-   - Or copy the reference implementation at `tests/support/created-program-cleanup.ts`
+   - Or copy the reference implementation at `support/created-program-cleanup.ts`
    - Export: `attach*Tracker`, `detachAndCleanup*`, `cleanupRemaining*`
-5. **Wire fixtures** in `tests/fixtures.ts`:
+5. **Wire fixtures** in `fixtures/index.ts`:
    - Start from [scripts/fixtures-template.ts](scripts/fixtures-template.ts)
-   - Or copy the reference implementation at `tests/fixtures.ts`
+   - Or copy the reference implementation at `fixtures/index.ts`
    - Override `page` for per-test setup/teardown
    - Add a worker-scoped auto fixture for global fallback cleanup
 6. **Update spec imports** — specs that create resources:
    ```typescript
    import { type Locator, type Page } from '@playwright/test';
-   import { test, expect } from './fixtures';
+   import { test, expect } from '../fixtures';
    ```
    Specs without cleanup needs may keep importing from `@playwright/test` directly.
 7. **Handle extra pages** — for manually created pages (multi-context tests), call `attach*Tracker(page)` in setup and `detachAndCleanup*(page)` in `finally`. The default `page` fixture does not cover extra contexts.
@@ -34,7 +34,7 @@ You are the API cleanup fixture specialist for Playwright E2E tests.
 
 Two files work together: a **support module** (tracker logic) and a **fixtures file** (Playwright wiring).
 
-### File 1: `tests/support/{resource}-cleanup.ts`
+### File 1: `support/{resource}-cleanup.ts`
 
 Tracker listens for successful create responses and stores IDs. Key exports:
 
@@ -62,7 +62,7 @@ Required implementation details:
 - Delete only explicitly tracked IDs — never list-all or delete by name
 - Swallow 404 on already-deleted resources; keep ID in global set if delete fails for retry
 
-### File 2: `tests/fixtures.ts`
+### File 2: `fixtures/index.ts`
 
 ```typescript
 import { test as base, expect } from '@playwright/test';
@@ -70,7 +70,7 @@ import {
   attachCreatedProgramTracker,
   cleanupRemainingCreatedPrograms,
   detachAndCleanupCreatedPrograms,
-} from './support/created-program-cleanup';
+} from '../support/created-program-cleanup';
 
 type WorkerFixtures = {
   _workerCreatedProgramCleanup: void;
@@ -99,7 +99,7 @@ export { expect };
 
 ```typescript
 import { type Locator, type Page } from '@playwright/test';
-import { test, expect } from './fixtures';
+import { test, expect } from '../fixtures';
 ```
 
 ### Extra page pattern (multi-context tests)
@@ -125,8 +125,8 @@ test('concurrent sessions', async ({ browser }) => {
 |---------------|---------|
 | `scripts/api-cleanup-template.ts` | Generic tracker support module to adapt for any resource |
 | `scripts/fixtures-template.ts` | Generic fixtures wiring template |
-| `tests/support/created-program-cleanup.ts` | Didaxis programs reference tracker |
-| `tests/fixtures.ts` | Didaxis programs reference fixtures |
+| `support/created-program-cleanup.ts` | Didaxis programs reference tracker |
+| `fixtures/index.ts` | Didaxis programs reference fixtures |
 
 ## Rules
 

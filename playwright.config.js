@@ -12,11 +12,11 @@ if (envResult.error && !process.env.CI) {
 const { defineConfig, devices } = require('@playwright/test');
 
 const testResultsDir = path.resolve(__dirname, 'test-results');
+const authFile = path.join(__dirname, 'playwright', '.auth', 'admin.json');
 
 module.exports = defineConfig({
   outputDir: testResultsDir,
   testDir: path.join(__dirname, 'tests'),
-  testMatch: '**/*.spec.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -24,7 +24,22 @@ module.exports = defineConfig({
   reporter: 'html',
   timeout: 60_000,
   use: {
-    ...devices['Desktop Chrome'],
+    baseURL: process.env.DIDAXIS_URL ?? 'https://test.didaxis.studio',
     trace: 'on',
   },
+  projects: [
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    {
+      name: 'chromium',
+      testMatch: '**/*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: authFile,
+      },
+      dependencies: ['setup'],
+    },
+  ],
 });
