@@ -16,10 +16,19 @@ if ($LASTEXITCODE -ne 0) {
   throw "GitHub CLI is not authenticated. Run: gh auth login"
 }
 
-Write-Host "Creating GitHub environment '$environment'..."
-gh api --method PUT "repos/$repo/environments/$environment" | Out-Null
+$existingEnvironments = gh api "repos/$repo/environments" --jq ".environments[].name" 2>$null
 if ($LASTEXITCODE -ne 0) {
-  throw "Failed to create environment '$environment'"
+  throw "Failed to list environments for $repo"
+}
+
+if ($existingEnvironments -contains $environment) {
+  Write-Host "Environment '$environment' already exists."
+} else {
+  Write-Host "Creating GitHub environment '$environment'..."
+  gh api --method PUT "repos/$repo/environments/$environment" | Out-Null
+  if ($LASTEXITCODE -ne 0) {
+    throw "Failed to create environment '$environment'"
+  }
 }
 
 $secrets = @{}
