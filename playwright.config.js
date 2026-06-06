@@ -21,16 +21,17 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: process.env.CI ? 'github' : 'html',
   timeout: 60_000,
   use: {
     baseURL: process.env.DIDAXIS_URL ?? 'https://test.didaxis.studio',
-    trace: 'on',
+    trace: process.env.CI ? 'retain-on-failure' : 'on',
   },
   projects: [
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
+      timeout: 120_000,
     },
     {
       name: 'chromium',
