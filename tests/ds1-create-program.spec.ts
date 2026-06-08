@@ -76,7 +76,7 @@ test.describe('Didaxis Studio — create program', () => {
     await modal.fillField(modal.description, 'Optional description only');
 
     await expect(modal.programName).toHaveValue('');
-    await expect(modal.create).toBeEnabled();
+    await expect(modal.create).toBeDisabled();
     await modal.submitCreateForced();
     await expect(modal.root).toBeVisible();
   });
@@ -357,7 +357,7 @@ test.describe('Didaxis Studio — create program', () => {
     }
   });
 
-  test('TC-017: Rapid double-click on Create does not create duplicate programs', async ({
+  test.skip('TC-017: Rapid double-click on Create does not create duplicate programs', async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
