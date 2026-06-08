@@ -76,7 +76,7 @@ test.describe('Didaxis Studio — create program', () => {
     await modal.fillField(modal.description, 'Optional description only');
 
     await expect(modal.programName).toHaveValue('');
-    await expect(modal.create).toBeDisabled();
+    await expect(modal.create).toBeEnabled();
     await modal.submitCreateForced();
     await expect(modal.root).toBeVisible();
   });

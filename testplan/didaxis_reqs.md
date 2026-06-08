@@ -3,9 +3,13 @@ Write Playwright tests for creating a new program on Didaxis Studio.
 ## App context (from manual inspection)
 
 - Login page: [https://test.didaxis.studio/login](https://test.didaxis.studio/login)
-  - Email field: getByRole('input', { type: 'email' })
-  - Password field: getByRole('input', { type: 'password' })
+  - Logo: getByRole('img', { name: 'Didaxis Studio' })
+  - Heading: getByText('Sign in to your account')
+  - Email field: getByRole('textbox', { name: 'Email' }) — placeholder `you@college.edu`
+  - Password field: getByRole('textbox', { name: 'Password' }) — placeholder `Your password`
+  - Password visibility toggle: button adjacent to password field (no accessible name; avoid in tests unless needed)
   - Sign In button: getByRole('button', { name: 'Sign In' })
+  - Error alert (after failed login): getByText('Invalid email or password')
 - Programs page: /programs
   - "New Program" button: getByRole('button', { name: '+ New Program' })
   - Create Modal form:
