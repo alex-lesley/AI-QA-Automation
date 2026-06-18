@@ -25,6 +25,11 @@ export class ProgramRow {
     return this.root.getByText(value, { exact: true });
   }
 
+  /** Guards against HTML injection rendering executable markup in a row. */
+  embeddedScripts(): Locator {
+    return this.root.locator('script');
+  }
+
   async openEdit(): Promise<EditProgramModal> {
     await this.edit.click();
     return new EditProgramModal(this.page);

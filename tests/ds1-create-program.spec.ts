@@ -1,8 +1,9 @@
-import { type Page } from '@playwright/test';
+import { type Locator, type Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import { LoginPage } from '../pages/login.page';
 import { ProgramsPage } from '../pages/programs.page';
 import type { NewProgramModal } from '../pages/components/new-program-modal.component';
+import { captureApiHeaders, createProgramViaApi } from '../support/programs-api';
 
 function uniqueName(base: string): string {
   return `${base} ${Date.now()}`;
@@ -34,6 +35,65 @@ async function createProgram(
   await expect(modal.root).toBeHidden({ timeout: 15_000 });
 }
 
+async function expectDuplicateSaveBlocked(modal: NewProgramModal): Promise<void> {
+  await expect(modal.root).toBeVisible({ timeout: 15_000 });
+  await expect
+    .poll(async () => {
+      if (await modal.duplicateNameError.isVisible().catch(() => false)) {
+        return true;
+      }
+      return modal.hasVisibleValidationError();
+    }, { timeout: 15_000 })
+    .toBeTruthy();
+}
+
+async function expectSaveSucceededOrValidationFeedback(
+  programs: ProgramsPage,
+  modal: NewProgramModal,
+  programName: string,
+): Promise<void> {
+  await expect
+    .poll(
+      async () => {
+        if ((await programs.row(programName).count()) === 1) {
+          return 'saved';
+        }
+        if (await modal.root.isVisible()) {
+          return (await modal.hasVisibleValidationError()) ? 'rejected' : null;
+        }
+        return null;
+      },
+      { timeout: 15_000 },
+    )
+    .toMatch(/saved|rejected/);
+}
+
+async function expectOverMaxInputBlocked(
+  programs: ProgramsPage,
+  modal: NewProgramModal,
+  programName: string,
+): Promise<void> {
+  await expect(programs.row(programName).root).toHaveCount(0);
+  await expect
+    .poll(async () => {
+      if (await modal.root.isVisible()) {
+        return true;
+      }
+      return modal.hasVisibleValidationError();
+    }, { timeout: 15_000 })
+    .toBeTruthy();
+}
+
+async function tabUntilFocused(page: Page, locator: Locator): Promise<void> {
+  for (let index = 0; index < 25; index += 1) {
+    if (await locator.evaluate((element) => element === document.activeElement)) {
+      return;
+    }
+    await page.keyboard.press('Tab');
+  }
+  await expect(locator).toBeFocused();
+}
+
 test.describe('Didaxis Studio — create program', () => {
   test.beforeEach(async ({ page }) => {
     await gotoProgramsPage(page);
@@ -45,12 +105,14 @@ test.describe('Didaxis Studio — create program', () => {
     const programs = new ProgramsPage(page);
     const modal = await programs.openNewProgram();
 
-    await expect(modal.root).toBeVisible();
-    await expect(modal.programName).toBeVisible();
-    await expect(modal.programName).toHaveAttribute('placeholder', 'e.g. Computer Science BSc');
-    await expect(modal.description).toBeVisible();
-    await expect(modal.description).toHaveAttribute('placeholder', 'Brief description');
-    await expect(modal.create).toBeVisible();
+    await expect.soft(modal.root).toBeVisible();
+    await expect.soft(modal.programName).toBeVisible();
+    await expect
+      .soft(modal.programName)
+      .toHaveAttribute('placeholder', 'e.g. Computer Science BSc');
+    await expect.soft(modal.description).toBeVisible();
+    await expect.soft(modal.description).toHaveAttribute('placeholder', 'Brief description');
+    await expect.soft(modal.create).toBeVisible();
     await expect(modal.create).toBeDisabled();
   });
 
@@ -140,44 +202,37 @@ test.describe('Didaxis Studio — create program', () => {
   test('TC-008: Duplicate Program Name is rejected and list is unchanged', async ({ page }) => {
     const programs = new ProgramsPage(page);
     const programName = uniqueName('Web Development 2026');
-    await createProgram(page, programName, 'Full-stack web development program');
-    await expect(programs.row(programName).root).toBeVisible();
-    const rowsBefore = await programs.row(programName).count();
+    const headers = await captureApiHeaders(page);
+    await createProgramViaApi(page, headers, programName, 'Full-stack web development program');
+    await page.reload();
+    await expect(programs.heading).toBeVisible();
+    await expect(programs.row(programName).root).toHaveCount(1);
 
     const modal = await openNewProgramModal(page);
     await modal.fill({ name: programName, description: 'Duplicate attempt' });
     await modal.submitCreate();
 
-    const rowsAfter = await programs.row(programName).count();
-    expect(rowsAfter).toBe(rowsBefore);
-
-    const duplicateBlocked =
-      (await modal.root.isVisible()) ||
-      (await programs.duplicateNameHint.isVisible().catch(() => false));
-    expect(duplicateBlocked).toBeTruthy();
+    await expect(programs.row(programName).root).toHaveCount(1);
+    await expectDuplicateSaveBlocked(modal);
   });
 
   test('TC-009: Whitespace-only Program Name does not create a program', async ({ page }) => {
     const programs = new ProgramsPage(page);
     const markerDescription = `Whitespace name test ${Date.now()}`;
     const modal = await openNewProgramModal(page);
-
-    const rowsBefore = await programs.rowsWithText(markerDescription).count();
+    const markerRows = programs.rowsWithText(markerDescription);
 
     await modal.fillField(modal.programName, '   ');
     await modal.fillField(modal.description, markerDescription);
 
-    const createEnabled = await modal.create.isEnabled();
-    if (createEnabled) {
+    if (await modal.create.isEnabled()) {
       await modal.submitCreate();
+      await expect(markerRows).toHaveCount(0);
+      await expect(modal.root).toBeVisible();
+    } else {
+      await expect(modal.create).toBeDisabled();
+      await expect(markerRows).toHaveCount(0);
     }
-
-    const dialogStillOpen = await modal.root.isVisible();
-    const validationVisible = await modal.hasVisibleValidationError();
-    const rowsAfter = await programs.rowsWithText(markerDescription).count();
-
-    expect(!createEnabled || dialogStillOpen || validationVisible).toBeTruthy();
-    expect(rowsAfter).toBe(rowsBefore);
   });
 
   test('TC-010: Program is not created when network or server save fails', async ({ page }) => {
@@ -185,10 +240,13 @@ test.describe('Didaxis Studio — create program', () => {
     const programName = uniqueName('Network Failure Program');
     const description = 'Simulated failure';
 
-    await page.route('**/*', async (route) => {
-      const request = route.request();
-      if (request.method() === 'POST' && request.url().includes('/api/')) {
-        await route.abort('failed');
+    await page.route('**/api/programs', async (route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: 'Service Unavailable' }),
+        });
         return;
       }
       await route.continue();
@@ -198,12 +256,9 @@ test.describe('Didaxis Studio — create program', () => {
     await modal.fill({ name: programName, description });
     await modal.submitCreate();
 
-    const errorVisible =
-      (await modal.root.isVisible()) ||
-      (await programs.alert.isVisible().catch(() => false)) ||
-      (await programs.errorHint.isVisible().catch(() => false));
-
-    expect(errorVisible).toBeTruthy();
+    await expect(
+      modal.root.or(programs.alert).or(programs.errorHint),
+    ).toBeVisible({ timeout: 15_000 });
     await expect(programs.row(programName).root).toHaveCount(0);
   });
 
@@ -217,14 +272,23 @@ test.describe('Didaxis Studio — create program', () => {
     const modal = await openNewProgramModal(page);
     await modal.fill({ name: paddedName, description: 'Trim behavior check' });
     await modal.submitCreate();
-    await expect(modal.root).toBeHidden();
 
-    const trimmedVisible = await programs.row(trimmedName).root.isVisible();
-    const paddedVisible = await programs.row(paddedName).root.isVisible();
-    expect(trimmedVisible || !paddedVisible).toBeTruthy();
-    if (trimmedVisible) {
-      await expect(programs.row(trimmedName).root).toBeVisible();
-    }
+    await expect
+      .poll(
+        async () => {
+          const trimmedCount = await programs.row(trimmedName).count();
+          const paddedCount = await programs.row(paddedName).count();
+          if (trimmedCount === 1 && paddedCount === 0) {
+            return 'trimmed';
+          }
+          if (await modal.root.isVisible()) {
+            return (await modal.hasVisibleValidationError()) ? 'rejected' : null;
+          }
+          return null;
+        },
+        { timeout: 15_000 },
+      )
+      .toMatch(/trimmed|rejected/);
   });
 
   test('TC-012: Special characters and symbols are preserved in Program Name and Description', async ({
@@ -240,7 +304,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(row.root).toBeVisible();
     await expect(row.root).toContainText(programName);
     await expect(row.root).toContainText(description);
-    await expect(row.root.locator('script')).toHaveCount(0);
+    await expect(row.embeddedScripts()).toHaveCount(0);
   });
 
   test('TC-013: Single-character Program Name is accepted at minimum boundary', async ({
@@ -265,24 +329,12 @@ test.describe('Didaxis Studio — create program', () => {
     const modal = await openNewProgramModal(page);
     await modal.fill({ name: maxName, description: 'Max length program name' });
     await modal.submitCreate();
+    await expectSaveSucceededOrValidationFeedback(programs, modal, maxName);
 
-    if (await modal.root.isHidden({ timeout: 15_000 }).catch(() => false)) {
-      await expect(programs.row(maxName).root).toBeVisible();
-    } else {
-      expect(await modal.hasVisibleValidationError()).toBeTruthy();
-    }
-
-    const overMaxRowsBefore = await programs.row(overMaxName).count();
     const modal2 = await openNewProgramModal(page);
     await modal2.fill({ name: overMaxName, description: 'Over max length program name' });
     await modal2.submitCreate();
-
-    const overMaxRowsAfter = await programs.row(overMaxName).count();
-    const overMaxBlocked =
-      (await modal2.root.isVisible()) ||
-      (await modal2.hasVisibleValidationError()) ||
-      overMaxRowsAfter === overMaxRowsBefore;
-    expect(overMaxBlocked).toBeTruthy();
+    await expectOverMaxInputBlocked(programs, modal2, overMaxName);
   });
 
   test('TC-015: Maximum-length Description is accepted or rejected with clear feedback', async ({
@@ -296,25 +348,13 @@ test.describe('Didaxis Studio — create program', () => {
     const modal = await openNewProgramModal(page);
     await modal.fill({ name: programName, description: maxDescription });
     await modal.submitCreate();
-
-    if (await modal.root.isHidden({ timeout: 15_000 }).catch(() => false)) {
-      await expect(programs.row(programName).root).toBeVisible();
-    } else {
-      expect(await modal.hasVisibleValidationError()).toBeTruthy();
-    }
+    await expectSaveSucceededOrValidationFeedback(programs, modal, programName);
 
     const programNameOver = uniqueName('Long Description Over Max');
-    const overMaxRowsBefore = await programs.row(programNameOver).count();
     const modal2 = await openNewProgramModal(page);
     await modal2.fill({ name: programNameOver, description: overMaxDescription });
     await modal2.submitCreate();
-
-    const overMaxRowsAfter = await programs.row(programNameOver).count();
-    const overMaxBlocked =
-      (await modal2.root.isVisible()) ||
-      (await modal2.hasVisibleValidationError()) ||
-      overMaxRowsAfter === overMaxRowsBefore;
-    expect(overMaxBlocked).toBeTruthy();
+    await expectOverMaxInputBlocked(programs, modal2, programNameOver);
   });
 
   test('TC-016: Duplicate names differing only by letter case are handled consistently', async ({
@@ -323,55 +363,81 @@ test.describe('Didaxis Studio — create program', () => {
     const programs = new ProgramsPage(page);
     const existingName = uniqueName('Web Development 2026');
     const variantName = existingName.replace('Web Development', 'web development');
-
-    await createProgram(page, existingName, 'Original program');
-    await expect(programs.row(existingName).root).toBeVisible();
-    const rowsBefore = await programs.row(existingName).count();
+    const headers = await captureApiHeaders(page);
+    await createProgramViaApi(page, headers, existingName, 'Original program');
+    await page.reload();
+    await expect(programs.row(existingName).root).toHaveCount(1);
 
     const modal = await openNewProgramModal(page);
     await modal.fill({ name: variantName, description: 'Case variant duplicate' });
     await modal.submitCreate();
 
     await expect
-      .poll(async () => {
-        const dialogVisible = await modal.root.isVisible();
-        if (dialogVisible) {
-          return (await modal.hasVisibleValidationError()) || true;
-        }
-        return true;
-      })
-      .toBeTruthy();
+      .poll(
+        async () => {
+          const existingRows = await programs.row(existingName).count();
+          const variantRows = await programs.row(variantName).count();
+          const dialogVisible = await modal.root.isVisible();
 
-    const existingRows = await programs.row(existingName).count();
-    const variantRows = await programs.row(variantName).count();
-    const dialogVisible = await modal.root.isVisible();
-    const totalRows = existingRows + variantRows;
-
-    if (dialogVisible) {
-      expect(existingRows).toBe(rowsBefore);
-      expect(variantRows).toBe(0);
-    } else if (variantRows > 0 && existingRows > 0) {
-      expect(totalRows).toBe(2);
-    } else {
-      expect(totalRows).toBe(1);
-    }
+          if (variantRows === 0 && existingRows === 1 && dialogVisible) {
+            return 'rejected';
+          }
+          if (variantRows === 1 && existingRows === 1 && !dialogVisible) {
+            return 'allowed';
+          }
+          if (variantRows === 0 && existingRows === 1 && !dialogVisible) {
+            return (await modal.hasVisibleValidationError()) ||
+              (await programs.duplicateNameHint.isVisible().catch(() => false))
+              ? 'rejected'
+              : null;
+          }
+          return null;
+        },
+        { timeout: 15_000 },
+      )
+      .toMatch(/rejected|allowed/);
   });
 
-  test.skip('TC-017: Rapid double-click on Create does not create duplicate programs', async ({
+  test.fixme(
+    'TC-017: Rapid double-click on Create does not create duplicate programs',
+    async ({ page }) => {
+      const programs = new ProgramsPage(page);
+      const programName = uniqueName('UX Design Certificate 2026');
+      const description = 'Double submit test';
+
+      const modal = await openNewProgramModal(page);
+      await modal.fill({ name: programName, description });
+      await modal.doubleClickCreate();
+
+      await expect(modal.root).toBeHidden({ timeout: 15_000 });
+      await expect
+        .poll(() => programs.row(programName).count(), { timeout: 15_000 })
+        .toBe(1);
+    },
+  );
+
+  test('TC-019: New Program modal exposes accessible names for primary controls', async ({
     page,
   }) => {
-    const programs = new ProgramsPage(page);
-    const programName = uniqueName('UX Design Certificate 2026');
-    const description = 'Double submit test';
+    const programs = await gotoProgramsPage(page);
+    const modal = await programs.openNewProgram();
 
-    const modal = await openNewProgramModal(page);
-    await modal.fill({ name: programName, description });
-    await modal.doubleClickCreate();
+    await expect.soft(modal.root).toBeVisible();
+    await expect.soft(modal.programName).toHaveAccessibleName('Program Name');
+    await expect.soft(modal.description).toHaveAccessibleName('Description');
+    await expect.soft(modal.create).toHaveAccessibleName('Create');
+    await expect(modal.cancel).toHaveAccessibleName('Cancel');
+  });
 
-    await expect(modal.root).toBeHidden({ timeout: 15_000 });
-    await expect
-      .poll(() => programs.row(programName).count(), { timeout: 15_000 })
-      .toBe(1);
+  test('TC-020: New Program flow is keyboard operable', async ({ page }) => {
+    const programs = await gotoProgramsPage(page);
+    await tabUntilFocused(page, programs.newProgramButton);
+    await page.keyboard.press('Enter');
+
+    const modal = programs.newProgramModal;
+    await expect(modal.root).toBeVisible();
+    await tabUntilFocused(page, modal.programName);
+    await expect(modal.programName).toBeFocused();
   });
 });
 
@@ -389,16 +455,19 @@ test.describe('Didaxis Studio — create program (non-admin)', () => {
     await loginPage.signInWith(email!, password!);
 
     const programs = await gotoProgramsPage(page);
-    const buttonVisible = await programs.newProgramButton.isVisible().catch(() => false);
+    const button = programs.newProgramButton;
 
-    if (buttonVisible) {
+    if (await button.isVisible()) {
       await programs.openNewProgram();
-      const blocked =
-        !(await programs.newProgramModal.root.isVisible().catch(() => false)) ||
-        (await programs.unauthorizedHint.isVisible().catch(() => false));
-      expect(blocked).toBeTruthy();
+      await expect
+        .poll(async () => {
+          const modalOpen = await programs.newProgramModal.root.isVisible();
+          const unauthorized = await programs.unauthorizedHint.isVisible().catch(() => false);
+          return !modalOpen || unauthorized;
+        }, { timeout: 15_000 })
+        .toBeTruthy();
     } else {
-      await expect(programs.newProgramButton).toBeHidden();
+      await expect(button).toBeHidden();
     }
   });
 });

@@ -26,6 +26,8 @@ module.exports = defineConfig({
   use: {
     baseURL: process.env.DIDAXIS_URL ?? 'https://test.didaxis.studio',
     trace: process.env.CI ? 'retain-on-failure' : 'on',
+    locale: 'en-CA',
+    timezoneId: 'America/Toronto',
   },
   projects: [
     {
