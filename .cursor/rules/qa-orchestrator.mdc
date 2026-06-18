@@ -39,7 +39,7 @@ alwaysApply: false
 | Trigger | Action |
 |---------|--------|
 | Ticket given | Analyze → produce test plan → save to `features/<ticket-key>.feature.md` |
-| Plan ready | Delegate to `test-writer` |
+| Plan ready | Delegate to `test-writer` (ref: playwright-conventions.mdc) |
 | Spec returned | Run `npx playwright test <spec-path>` |
 | Run is red | Delegate to `triage` |
 | Real app bug | Delegate to `bug-reporter` (after human confirms filing) |
