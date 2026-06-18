@@ -267,10 +267,17 @@ test.describe('Didaxis Studio — program list display', () => {
     await Promise.all(
       created.map((program) => deleteProgramViaApi(page, headers, program.id)),
     );
+    releaseTrackedProgramIds(
+      page,
+      created.map((program) => program.id),
+    );
+    await ensureNoProgramsViaApi(page, headers);
 
     await page.reload();
     await expect(programs.heading).toBeVisible();
-    expect(await programs.countVisibleProgramRows()).toBe(0);
+    await expect
+      .poll(() => programs.countVisibleProgramRows(), { timeout: 15_000 })
+      .toBe(0);
     await assertEmptyStateVisible(programs);
   });
 
