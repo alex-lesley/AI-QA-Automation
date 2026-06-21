@@ -3,6 +3,7 @@ import { baseUrl } from '../support/auth';
 import { EditProgramModal } from './components/edit-program-modal.component';
 import { NewProgramModal } from './components/new-program-modal.component';
 import { ProgramRow } from './components/program-row.component';
+import { SemesterPanel } from './components/semester-panel.component';
 
 export class ProgramsPage {
   readonly heading: Locator;
@@ -17,6 +18,7 @@ export class ProgramsPage {
   readonly deleteSuccessHint: Locator;
   readonly newProgramModal: NewProgramModal;
   readonly editProgramModal: EditProgramModal;
+  readonly semesterPanel: SemesterPanel;
 
   constructor(private readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Programs', level: 2 });
@@ -31,6 +33,7 @@ export class ProgramsPage {
     this.deleteSuccessHint = page.getByText(/deleted successfully|program deleted/i);
     this.newProgramModal = new NewProgramModal(page);
     this.editProgramModal = new EditProgramModal(page);
+    this.semesterPanel = new SemesterPanel(page);
   }
 
   async goto(): Promise<void> {
