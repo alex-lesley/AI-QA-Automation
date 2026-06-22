@@ -1,5 +1,5 @@
 ---
-description: Coordinator for QA work. Takes a ticket or a red build and drives it to done by delegating to the specialist agents. Use to run a whole ticket or failure end to end.
+description: Coordinator for QA work. Takes a ticket, a ticket backlog, or a red build and drives it to done by delegating to specialist agents. Use for single-ticket flow, backlog mode (queued In Progress DS tickets), or CI failure triage.
 alwaysApply: false
 ---
 
@@ -32,7 +32,8 @@ alwaysApply: false
 
 ## Skills
 
-- `jira-ticket-analyzer` — `.agent/skills/jira-ticket-analyzer/SKILL.md` (coordinator owns "analyze")
+- `jira-ticket-analyzer` — `.cursor/skills/jira-ticket-analyzer/SKILL.md` (coordinator owns "analyze")
+- `explore-and-generate` — `.cursor/skills/explore-and-generate/SKILL.md` (ticket-less coverage discovery; coordinator owns "explore")
 
 ## Routing
 
@@ -44,6 +45,8 @@ alwaysApply: false
 | Run is red | Delegate to `triage` |
 | Real app bug | Delegate to `bug-reporter` (after human confirms filing) |
 | Test issue | Delegate to `test-writer` (propose fix; human OKs before commit) |
+| Coverage gap / no ticket | Apply `explore-and-generate` → save plan to `features/<slug>.feature.md` → hand off to `test-writer` |
+| Backlog mode (see below) | Process queued tickets one at a time; do not self-trigger |
 
 ## Delegation
 
@@ -60,6 +63,67 @@ Pass each subagent the handoff from the prior step (plan path, run id, triage ou
 ## Done
 
 The suite is green for the ticket, or a bug is filed and linked to the story.
+
+## Backlog mode
+
+Process a **queue of tickets**, not a single ticket. The coordinator never decides when to start — an outer runner (Cursor Automation, headless `agent -p` run, or local batch script) supplies the queue and invokes this rule.
+
+### Trigger (outer runner owns this)
+
+Query Jira for DS tickets where:
+
+- `status = "In Progress"`
+- label `tests-generated` is **absent**
+
+The runner passes the resulting ticket keys into the coordinator. The agent does **not** poll Jira or self-start.
+
+### Budget
+
+- At most **5 tickets** per run.
+- Process tickets **sequentially** (one full loop per ticket before starting the next).
+
+### Per-ticket loop
+
+For each ticket key in the queue:
+
+1. **Analyze** — apply `jira-ticket-analyzer` → save plan to `features/<ticket-key>.feature.md`
+2. **Write** — delegate to `test-writer` → spec path
+3. **Run** — `npx playwright test <spec-path>`
+4. **On red** — delegate to `triage`; follow Routing (test issue → `test-writer`; app bug → `bug-reporter` after human confirms)
+5. **On green or stopped** — open **one PR per ticket** (branch, commit spec + plan, push, `gh pr create`)
+6. **Link** — PR body references the Jira ticket key; add Jira remote link if available
+7. **Label** — on **green**, add `tests-generated` so the next backlog run skips it; on **stop**, do not label (human retries later)
+
+Move to the next ticket after step 7, or immediately after a stop condition.
+
+### Stop conditions (per ticket)
+
+- **Repeated identical failure** — same spec fails with the same error twice; open PR with partial work if any, note outcome in run summary, **do not** add `tests-generated`, move on
+- **Triage can't classify** — stop that ticket; escalate in PR/run summary; do **not** add `tests-generated`
+- **Loop guard** — respect global limits (≤3 delegations per task; ≤2 identical failing re-runs)
+
+Never merge PRs, close tickets, or file bugs without explicit human approval.
+
+### Output
+
+| Artifact | Requirement |
+|----------|-------------|
+| PR | One per ticket processed (even if suite is still red after stop) |
+| Jira link | Ticket key in PR title/body; optional remote link |
+| Label | `tests-generated` when suite is green; omitted on stop so ticket re-queues |
+| Run summary | Tickets attempted, PR URLs, stopped/skipped tickets with reason |
+
+### Example backlog run
+
+```
+Runner: [DS-3, DS-5, DS-7]   # from Jira query; max 5
+
+DS-3 → analyze → test-writer → playwright → green → PR #42 → label tests-generated
+DS-5 → analyze → test-writer → playwright → red → triage → test issue → fix → red (same error) → stop → PR #43 (WIP) → no label
+DS-7 → analyze → test-writer → playwright → green → PR #44 → label tests-generated
+
+Summary: 2 green, 1 stopped (identical failure on DS-5)
+```
 
 ## Example flow
 
