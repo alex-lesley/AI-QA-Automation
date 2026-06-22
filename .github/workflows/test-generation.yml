@@ -3,7 +3,7 @@ name: Test Generation
 on:
   schedule:
     # 9:00 AM EST Mon–Fri (14:00 UTC; EST = UTC-5)
-    - cron: '15 19 * * 4'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 concurrency:
@@ -18,7 +18,7 @@ jobs:
   generate:
     name: Generate Playwright tests from backlog
     runs-on: ubuntu-latest
-    environment: dev1
+    environment: didaxis_dev
     timeout-minutes: 120
     env:
       DIDAXIS_URL: ${{ secrets.DIDAXIS_URL }}
