@@ -30,6 +30,10 @@ export class ProgramRow {
     return this.root.locator('script');
   }
 
+  async select(): Promise<void> {
+    await this.nameText().click();
+  }
+
   async openEdit(): Promise<EditProgramModal> {
     await this.edit.click();
     return new EditProgramModal(this.page);
