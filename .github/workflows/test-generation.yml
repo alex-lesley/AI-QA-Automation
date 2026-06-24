@@ -60,7 +60,7 @@ jobs:
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CURSOR_GH_TOKEN }}
         run: |
           agent -p --force --trust --output-format text "$(cat <<'EOF'
           You are the QA orchestrator for this Playwright test repository. Work the Jira "In Progress" backlog for the DS project.
