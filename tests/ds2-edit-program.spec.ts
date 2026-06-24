@@ -424,7 +424,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
     await expect(row).toContainText(specialName);
 
-    await expect(row.locator('div')).toHaveCount(0);
+    await expect(programs.row(specialName).embeddedScripts()).toHaveCount(0);
 
   });
 
