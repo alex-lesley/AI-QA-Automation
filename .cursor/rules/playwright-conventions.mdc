@@ -17,6 +17,17 @@ globs: tests/**
 
 Each rule below shows the standard, then a ✅ good and ❌ bad example. When in doubt, prefer the example a *user* (or a screen reader) would recognize over the one coupled to markup.
 
+## Refusals (hard stops)
+
+These are non-negotiable. If a request conflicts with any item below, **stop** and raise the conflict with the user — do not comply, work around, or "just this once."
+
+- **REFUSE** to weaken, loosen, or delete an assertion to make a failing test pass. A red assertion is evidence; removing it hides a bug or drift instead of fixing it.
+- **REFUSE** to self-heal or patch locators when CI failure triage classified the failure as a **real app bug**. Route those to bug reporting; healing is only for test drift.
+- **REFUSE** to replace a `getByRole` / `getByLabel` / other user-facing locator with CSS or XPath to "fix" a broken selector. Fix the accessible name or raise an app/accessibility bug.
+- **REFUSE** to add `waitForTimeout` or any fixed sleep. Use web-first `expect()` or action auto-waiting instead.
+- **REFUSE** to hardcode credentials, tokens, or passwords in source. Use `process.env` and the auth setup project's `storageState`.
+- **REFUSE** to use the TypeScript `any` type in test or POM code. Use proper types, `unknown` + narrowing, or generics.
+
 ## 1. Locators — user-facing, in priority order
 
 Reach for locators top-to-bottom: `getByRole` → `getByLabel`/`getByPlaceholder` → `getByText` → `getByTestId` → (last resort) CSS/XPath, flagged for review.

@@ -9,14 +9,16 @@ alwaysApply: false
 
 **Inputs:** a ticket key (e.g. `DS-3`) or a failed run id.
 
-**Outputs:** the task driven to done — spec committed and green, or a filed bug.
+**Outputs:** the task driven to done — spec committed and green, a repair PR for drift heals, or a filed bug.
 
 **Scope:** read Jira + CI; run the suite; delegate. Do not write test code or file bugs yourself.
 
 ## Guardrails
 
 - A human approves any merge and any bug before it's filed.
-- Stop and escalate if a run fails identically twice, or if triage can't classify.
+- **Never heal an assertion** — locator drift is POM-only; assertions stay unchanged (enforced by `.cursor/hooks/block-weakened-test.mjs`).
+- **Never merge a repair PR** — human review required for every heal.
+- Stop and escalate if a run fails identically twice, if triage can't classify, or if a heal won't prove green.
 
 ## Loop guard
 
@@ -27,6 +29,7 @@ alwaysApply: false
 
 - Atlassian MCP — read ticket
 - GitHub MCP or `gh` — read runs
+- user-playwright MCP — re-discover locators during self-heal (`browser_snapshot`)
 - Terminal — `npx playwright test`
 - Delegate to specialist agents (`test-writer`, `triage`, `bug-reporter`)
 
@@ -34,6 +37,9 @@ alwaysApply: false
 
 - `jira-ticket-analyzer` — `.cursor/skills/jira-ticket-analyzer/SKILL.md` (coordinator owns "analyze")
 - `explore-and-generate` — `.cursor/skills/explore-and-generate/SKILL.md` (ticket-less coverage discovery; coordinator owns "explore")
+- `ci-failure-triage` — `.cursor/skills/ci-failure-triage/SKILL.md` (classify red runs; coordinator delegates to `triage` subagent or applies skill)
+- `self-heal` — `.cursor/skills/self-heal/SKILL.md` (locator drift repair after triage; POM-only, assertions unchanged)
+- `jira-bug-reporter` — `.cursor/skills/jira-bug-reporter/SKILL.md` (real app bugs only; coordinator delegates to `bug-reporter` subagent)
 
 ## Routing
 
@@ -42,9 +48,9 @@ alwaysApply: false
 | Ticket given | Analyze → produce test plan → save to `features/<ticket-key>.feature.md` |
 | Plan ready | Delegate to `test-writer` (ref: playwright-conventions.mdc) |
 | Spec returned | Run `npx playwright test <spec-path>` |
-| Run is red | Delegate to `triage` |
-| Real app bug | Delegate to `bug-reporter` (after human confirms filing) |
-| Test issue | Delegate to `test-writer` (propose fix; human OKs before commit) |
+| Run is red | Delegate to `triage` → follow **Heal on red** |
+| Drift (test issue) | Apply `self-heal` — POM patch only; open repair PR linked to run; human merges |
+| Real app bug | Delegate to `bug-reporter` to file and link — **never heal** |
 | Coverage gap / no ticket | Apply `explore-and-generate` → save plan to `features/<slug>.feature.md` → hand off to `test-writer` |
 | Backlog mode (see below) | Process queued tickets one at a time; do not self-trigger |
 
@@ -60,9 +66,46 @@ bug-reporter → file Jira bug after human approval; returns bug key + link
 
 Pass each subagent the handoff from the prior step (plan path, run id, triage output).
 
+For drift repairs, the coordinator applies `self-heal` directly (not `test-writer`).
+
+## Heal on red
+
+When a CI run or local suite is red, triage first — then route by classification.
+
+### Flow
+
+1. **Triage** — delegate to `triage` (or apply `ci-failure-triage`). Must return an explicit classification: **drift (test issue)** or **real app bug**, with evidence (failing test, locator, trace, run id).
+2. **Route by classification:**
+   - **Drift** → apply `self-heal` (steps below). Do **not** delegate to `test-writer` for locator fixes.
+   - **Real app bug** → delegate to `bug-reporter` to file and link the Jira ticket to the story. **Never** patch locators or weaken assertions to mask a defect.
+3. **Ambiguous or missing classification** → stop and escalate; do not heal.
+
+### Self-heal steps (drift only)
+
+Follow `.cursor/skills/self-heal/SKILL.md`:
+
+1. From trace/stack, find the failing locator and owning POM (`pages/`).
+2. **Re-discover** the element via **user-playwright** MCP (`browser_snapshot` a11y tree) — role + accessible name, not DOM guesses.
+3. **Patch the POM** — minimal locator diff; **never edit spec assertions**.
+4. **Re-run** the failing spec/test and prove green with **assertions unchanged**.
+5. **Open a repair PR** — branch `heal/<short-description>`, body links the CI run id, quotes triage classification, shows old → new locator diff and green re-run output.
+6. **Human merges** — never auto-merge a repair PR.
+
+### Heal budget and stop conditions
+
+| Rule | Limit |
+|------|-------|
+| Heals per run | **At most 5** |
+| Scope per heal | **One failing locator** per heal cycle |
+| Assertion edits | **Forbidden** — green only after changing `expect(...)` is a failed heal; escalate |
+| Won't prove green | Stop after re-run still red; do not broaden locators or relax expects; escalate |
+| Merge | **Human only** — repair PRs are never merged by the agent |
+
+Each additional failure after a heal needs a fresh triage → heal cycle (counts toward the 5-heal budget).
+
 ## Done
 
-The suite is green for the ticket, or a bug is filed and linked to the story.
+The suite is green for the ticket, a repair PR is open for a drift heal (human merges), or a bug is filed and linked to the story.
 
 ## Backlog mode
 
@@ -89,7 +132,7 @@ For each ticket key in the queue:
 1. **Analyze** — apply `jira-ticket-analyzer` → save plan to `features/<ticket-key>.feature.md`
 2. **Write** — delegate to `test-writer` → spec path
 3. **Run** — `npx playwright test <spec-path>`
-4. **On red** — delegate to `triage`; follow Routing (test issue → `test-writer`; app bug → `bug-reporter` after human confirms)
+4. **On red** — delegate to `triage`; follow **Heal on red** (drift → `self-heal` + repair PR; app bug → `bug-reporter`; never heal a bug)
 5. **On green or stopped** — open **one PR per ticket** (branch, commit spec + plan, push, `gh pr create`)
 6. **Link** — PR body references the Jira ticket key; add Jira remote link if available
 7. **Label** — on **green**, add `tests-generated` so the next backlog run skips it; on **stop**, do not label (human retries later)
@@ -119,7 +162,7 @@ Never merge PRs, close tickets, or file bugs without explicit human approval.
 Runner: [DS-3, DS-5, DS-7]   # from Jira query; max 5
 
 DS-3 → analyze → test-writer → playwright → green → PR #42 → label tests-generated
-DS-5 → analyze → test-writer → playwright → red → triage → test issue → fix → red (same error) → stop → PR #43 (WIP) → no label
+DS-5 → analyze → test-writer → playwright → red → triage → drift → self-heal → re-run red (same error) → stop → repair PR #43 (WIP) → no label
 DS-7 → analyze → test-writer → playwright → green → PR #44 → label tests-generated
 
 Summary: 2 green, 1 stopped (identical failure on DS-5)
@@ -135,7 +178,11 @@ User: DS-3
 → Green → done
 
 User: run 27151558238
-→ Delegate triage → test issue
-→ Delegate test-writer with diagnosis → propose fix
-→ Human OKs → re-run → green → done
+→ Delegate triage → drift (locator rename)
+→ Apply self-heal: Playwright MCP snapshot → patch POM → re-run → green (assertions unchanged)
+→ Open repair PR linked to run 27151558238 → human merges → done
+
+User: run 28123886190
+→ Delegate triage → real app bug
+→ Delegate bug-reporter → file DS-xxx, link to story → never heal → done
 ```
