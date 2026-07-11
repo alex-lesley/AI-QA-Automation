@@ -66,7 +66,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     await gotoProgramsPage(page);
   });
 
-  test('TC-001: Program is created when Name contains allowed letters, spaces, and allowed special characters', async ({
+  test('TC-001: Program is created when Name contains allowed letters, spaces, and allowed special characters', { tag: '@smoke' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -80,7 +80,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     await expect(programs.row(programName).root.first()).toContainText(programName);
   });
 
-  test('TC-002: Program is created when Name contains each allowed special character', async ({
+  test('TC-002: Program is created when Name contains each allowed special character', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -97,7 +97,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     await expect(row).toContainText('@');
   });
 
-  test('TC-003: Leading and trailing spaces are trimmed before save', async ({ page }) => {
+  test('TC-003: Leading and trailing spaces are trimmed before save', { tag: '@sanity' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const trimmedName = uniqueName('Web Development 2027');
     const paddedName = `   ${trimmedName}   `;
@@ -115,7 +115,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     }
   });
 
-  test('TC-004: Form is not submitted when Name contains only spaces', async ({ page }) => {
+  test('TC-004: Form is not submitted when Name contains only spaces', { tag: '@sanity' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const markerDescription = `Whitespace-only name test ${Date.now()}`;
     const modal = await openCreateModal(page);
@@ -134,7 +134,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     expect(blocked).toBeTruthy();
   });
 
-  test.skip('TC-005: Duplicate Name is rejected when exactly matching an existing program', async ({
+  test.skip('TC-005: Duplicate Name is rejected when exactly matching an existing program', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -151,7 +151,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     await expect(modal.root).toBeVisible();
   });
 
-  test('TC-006: Duplicate Name is rejected when case differs only', async ({ page }) => {
+  test('TC-006: Duplicate Name is rejected when case differs only', { tag: '@sanity' }, async ({ page }) => {
     const existingName = uniqueName('Web Development 2026');
     const variantName = existingName.replace('Web Development', 'web development');
     await createProgram(page, existingName);
@@ -165,7 +165,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     await expectCreateBlocked(page, modal, variantName, rowsBeforeVariant);
   });
 
-  test('TC-007: Duplicate Name is rejected when only whitespace count differs', async ({
+  test('TC-007: Duplicate Name is rejected when only whitespace count differs', { tag: '@regression' }, async ({
     page,
   }) => {
     const existingName = uniqueName('Web Development 2026');
@@ -181,7 +181,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     await expectCreateBlocked(page, modal, variantName, rowsBeforeVariant);
   });
 
-  test('TC-008: Name is rejected when it contains a non-allowed special character', async ({
+  test('TC-008: Name is rejected when it contains a non-allowed special character', { tag: '@sanity' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -195,7 +195,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     await expectCreateBlocked(page, modal, invalidName, rowsBefore);
   });
 
-  test('TC-009: Name is rejected when empty string is submitted', async ({ page }) => {
+  test('TC-009: Name is rejected when empty string is submitted', { tag: '@sanity' }, async ({ page }) => {
     const modal = await openCreateModal(page);
 
     await expect(modal.programName).toHaveValue('');
@@ -204,7 +204,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     await expect(modal.root).toBeVisible();
   });
 
-  test('TC-010: Name accepts minimum non-empty valid value', async ({ page }) => {
+  test('TC-010: Name accepts minimum non-empty valid value', { tag: '@regression' }, async ({ page }) => {
     const programName = String.fromCharCode(65 + (Date.now() % 26));
 
     const modal = await openCreateModal(page);
@@ -214,7 +214,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     await expectCreateSucceeded(page, modal, programName);
   });
 
-  test('TC-011: Name with only allowed punctuation and letters remains valid after trim', async ({
+  test('TC-011: Name with only allowed punctuation and letters remains valid after trim', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -234,7 +234,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     }
   });
 
-  test('TC-012: Name with tab/newline-only whitespace is treated as empty', async ({ page }) => {
+  test('TC-012: Name with tab/newline-only whitespace is treated as empty', { tag: '@regression' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const markerDescription = `Tab newline name test ${Date.now()}`;
     const modal = await openCreateModal(page);
@@ -253,7 +253,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     expect(blocked).toBeTruthy();
   });
 
-  test('TC-013: Name at maximum allowed length is accepted', async ({ page }) => {
+  test('TC-013: Name at maximum allowed length is accepted', { tag: '@regression' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const suffix = String(Date.now()).slice(-8);
     const maxName = `${'a'.repeat(255 - suffix.length - 1)}${suffix}`;
@@ -277,7 +277,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
       .toBeGreaterThan(0);
   });
 
-  test('TC-014: Name exceeding maximum allowed length is rejected', async ({ page }) => {
+  test('TC-014: Name exceeding maximum allowed length is rejected', { tag: '@regression' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const suffix = String(Date.now()).slice(-8);
     const maxName = `${'a'.repeat(255 - suffix.length - 1)}${suffix}`;
@@ -294,7 +294,7 @@ test.describe('Didaxis Studio — program name validation (create)', () => {
     expect(blocked).toBeTruthy();
   });
 
-  test('TC-015: Duplicate check applies after trimming leading/trailing spaces', async ({
+  test('TC-015: Duplicate check applies after trimming leading/trailing spaces', { tag: '@regression' }, async ({
     page,
   }) => {
     const existingName = uniqueName('Data Science 2026');

@@ -1,3 +1,4 @@
+
 import { type Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import { baseUrl } from '../support/auth';
@@ -85,7 +86,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     await gotoProgramsPage(page);
   });
 
-  test('TC-001: Deleting Test Program after confirmation removes it from the program list', async ({
+  test('TC-001: Deleting Test Program after confirmation removes it from the program list', { tag: '@smoke' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -102,7 +103,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     await expect(programs.errorAlerts()).toHaveCount(0);
   });
 
-  test('TC-002: Canceling deletion leaves Test Program in the program list', async ({ page }) => {
+  test('TC-002: Canceling deletion leaves Test Program in the program list', { tag: '@smoke' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const testProgram = uniqueName('Test Program');
     await createProgram(page, testProgram);
@@ -114,7 +115,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     await expect(programs.deleteSuccessHint).toHaveCount(0);
   });
 
-  test('TC-003: Confirmation dialog shows the correct program name when several programs exist', async ({
+  test('TC-003: Confirmation dialog shows the correct program name when several programs exist', { tag: '@sanity' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -133,7 +134,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     await expect(programs.row(alphaSchedule).root).toBeVisible();
   });
 
-  test('TC-004: Program is not removed when the user only opens the dialog and does not confirm', async ({
+  test('TC-004: Program is not removed when the user only opens the dialog and does not confirm', { tag: '@sanity' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -150,7 +151,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     await expect(programs.row(testProgram).root).toHaveCount(1);
   });
 
-  test('TC-005: Deleting Test Program does not remove a different program from the list', async ({
+  test('TC-005: Deleting Test Program does not remove a different program from the list', { tag: '@sanity' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -166,7 +167,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     await expect(programs.row(retentionPilot).root).toBeVisible();
   });
 
-  test('TC-006: No duplicate or silent delete occurs when Confirm is clicked once', async ({
+  test('TC-006: No duplicate or silent delete occurs when Confirm is clicked once', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -192,7 +193,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     await expect(programs.row(sibling).root).toHaveCount(1);
   });
 
-  test('TC-007: Cancel does not partially delete or mark the program as deleted in the UI', async ({
+  test('TC-007: Cancel does not partially delete or mark the program as deleted in the UI', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -208,7 +209,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     await editModal.cancelModal();
   });
 
-  test('TC-008: Dialog message remains correct for a long program name', async ({ page }) => {
+  test('TC-008: Dialog message remains correct for a long program name', { tag: '@regression' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const longName = uniqueName(
       'North Region Holiday Overtime Program Q1-Q2 2026 Extended Pilot',
@@ -222,7 +223,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     await expect(programs.row(longName).root).toBeVisible();
   });
 
-  test('TC-009: Program name with special characters appears verbatim in the dialog', async ({
+  test('TC-009: Program name with special characters appears verbatim in the dialog', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -235,7 +236,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     expect(message).toMatch(expectedDeleteMessagePattern(specialName));
   });
 
-  test('TC-010: Only one confirmation dialog opens per delete icon click', async ({ page }) => {
+  test('TC-010: Only one confirmation dialog opens per delete icon click', { tag: '@regression' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const testProgram = uniqueName('Test Program');
     await createProgram(page, testProgram);
@@ -255,7 +256,7 @@ test.describe('Didaxis Studio — delete program with confirmation', () => {
     page.removeAllListeners('dialog');
   });
 
-  test('TC-011: Program remains when delete dialog is dismissed before returning to the list', async ({
+  test('TC-011: Program remains when delete dialog is dismissed before returning to the list', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);

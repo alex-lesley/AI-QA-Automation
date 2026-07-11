@@ -34,7 +34,7 @@ test.describe('Didaxis Studio — program semester panel selection', () => {
     await gotoProgramsPage(page);
   });
 
-  test('TC-001: Selecting a program reveals the semester management panel', async ({ page }) => {
+  test('TC-001: Selecting a program reveals the semester management panel', { tag: '@smoke' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const programName = uniqueName('Semester Panel Alpha');
     await createProgram(page, programName);
@@ -51,7 +51,7 @@ test.describe('Didaxis Studio — program semester panel selection', () => {
     await expect(programs.semesterPanel.selectedProgramName(programName)).toBeVisible();
   });
 
-  test('TC-002: Switching selection updates the semester panel context', async ({ page }) => {
+  test('TC-002: Switching selection updates the semester panel context', { tag: '@sanity' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const alphaName = uniqueName('Semester Panel Alpha');
     const betaName = uniqueName('Semester Panel Beta');

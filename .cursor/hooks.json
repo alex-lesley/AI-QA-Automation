@@ -3,8 +3,13 @@
   "hooks": {
     "afterFileEdit": [
       {
-        "command": ".cursor/hooks/block-weakened-test.mjs",
-        "matcher": "tests/**",
+        "command": ".cursor/hooks/block-wont-violations.sh",
+        "matcher": "Write",
+        "failClosed": true
+      },
+      {
+        "command": ".cursor/hooks/block-weakened-test.sh",
+        "matcher": "Write",
         "failClosed": true
       }
     ]

@@ -99,7 +99,7 @@ test.describe('Didaxis Studio — create program', () => {
     await gotoProgramsPage(page);
   });
 
-  test('TC-001: Program creation form opens with Program Name and Description fields', async ({
+  test('TC-001: Program creation form opens with Program Name and Description fields', { tag: '@smoke' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -116,7 +116,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(modal.create).toBeDisabled();
   });
 
-  test('TC-002: Valid program is created and appears in the list after Create', async ({
+  test('TC-002: Valid program is created and appears in the list after Create', { tag: '@smoke' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -132,7 +132,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(programs.alert).toHaveCount(0);
   });
 
-  test('TC-003: Create button stays disabled when Program Name is empty', async ({ page }) => {
+  test('TC-003: Create button stays disabled when Program Name is empty', { tag: '@sanity' }, async ({ page }) => {
     const modal = await openNewProgramModal(page);
 
     await modal.fillField(modal.description, 'Optional description only');
@@ -143,7 +143,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(modal.root).toBeVisible();
   });
 
-  test('TC-004: Program is created with Description empty when Program Name is valid', async ({
+  test('TC-004: Program is created with Description empty when Program Name is valid', { tag: '@sanity' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -159,7 +159,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(programs.row(programName).root).toBeVisible();
   });
 
-  test('TC-005: Re-opening New Program after a successful create shows a fresh empty form', async ({
+  test('TC-005: Re-opening New Program after a successful create shows a fresh empty form', { tag: '@sanity' }, async ({
     page,
   }) => {
     const programName = uniqueName('Web Development 2026');
@@ -171,7 +171,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(modal.description).toHaveValue('');
   });
 
-  test('TC-006: No program is added when the creation modal is closed without Create', async ({
+  test('TC-006: No program is added when the creation modal is closed without Create', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -186,7 +186,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(programs.row(programName).root).toHaveCount(0);
   });
 
-  test('TC-007: Filling only Description does not enable Create or create a program', async ({
+  test('TC-007: Filling only Description does not enable Create or create a program', { tag: '@regression' }, async ({
     page,
   }) => {
     const modal = await openNewProgramModal(page);
@@ -199,7 +199,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(modal.root).toBeVisible();
   });
 
-  test('TC-008: Duplicate Program Name is rejected and list is unchanged', async ({ page }) => {
+  test('TC-008: Duplicate Program Name is rejected and list is unchanged', { tag: '@sanity' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const programName = uniqueName('Web Development 2026');
     const headers = await captureApiHeaders(page);
@@ -216,7 +216,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expectDuplicateSaveBlocked(modal);
   });
 
-  test('TC-009: Whitespace-only Program Name does not create a program', async ({ page }) => {
+  test('TC-009: Whitespace-only Program Name does not create a program', { tag: '@regression' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const markerDescription = `Whitespace name test ${Date.now()}`;
     const modal = await openNewProgramModal(page);
@@ -235,7 +235,7 @@ test.describe('Didaxis Studio — create program', () => {
     }
   });
 
-  test('TC-010: Program is not created when network or server save fails', async ({ page }) => {
+  test('TC-010: Program is not created when network or server save fails', { tag: '@regression' }, async ({ page }) => {
     const programs = new ProgramsPage(page);
     const programName = uniqueName('Network Failure Program');
     const description = 'Simulated failure';
@@ -262,7 +262,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(programs.row(programName).root).toHaveCount(0);
   });
 
-  test('TC-011: Leading and trailing spaces on Program Name are trimmed when saved', async ({
+  test('TC-011: Leading and trailing spaces on Program Name are trimmed when saved', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -291,7 +291,7 @@ test.describe('Didaxis Studio — create program', () => {
       .toMatch(/trimmed|rejected/);
   });
 
-  test('TC-012: Special characters and symbols are preserved in Program Name and Description', async ({
+  test('TC-012: Special characters and symbols are preserved in Program Name and Description', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -307,7 +307,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(row.embeddedScripts()).toHaveCount(0);
   });
 
-  test('TC-013: Single-character Program Name is accepted at minimum boundary', async ({
+  test('TC-013: Single-character Program Name is accepted at minimum boundary', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -318,7 +318,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(programs.row(programName).root).toBeVisible();
   });
 
-  test('TC-014: Maximum-length Program Name is accepted or rejected with clear feedback', async ({
+  test('TC-014: Maximum-length Program Name is accepted or rejected with clear feedback', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -337,7 +337,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expectOverMaxInputBlocked(programs, modal2, overMaxName);
   });
 
-  test('TC-015: Maximum-length Description is accepted or rejected with clear feedback', async ({
+  test('TC-015: Maximum-length Description is accepted or rejected with clear feedback', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -357,7 +357,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expectOverMaxInputBlocked(programs, modal2, programNameOver);
   });
 
-  test('TC-016: Duplicate names differing only by letter case are handled consistently', async ({
+  test('TC-016: Duplicate names differing only by letter case are handled consistently', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -416,7 +416,7 @@ test.describe('Didaxis Studio — create program', () => {
     },
   );
 
-  test('TC-019: New Program modal exposes accessible names for primary controls', async ({
+  test('TC-019: New Program modal exposes accessible names for primary controls', { tag: '@sanity' }, async ({
     page,
   }) => {
     const programs = await gotoProgramsPage(page);
@@ -429,7 +429,7 @@ test.describe('Didaxis Studio — create program', () => {
     await expect(modal.cancel).toHaveAccessibleName('Cancel');
   });
 
-  test('TC-020: New Program flow is keyboard operable', async ({ page }) => {
+  test('TC-020: New Program flow is keyboard operable', { tag: '@e2e' }, async ({ page }) => {
     const programs = await gotoProgramsPage(page);
     await tabUntilFocused(page, programs.newProgramButton);
     await page.keyboard.press('Enter');
@@ -444,7 +444,7 @@ test.describe('Didaxis Studio — create program', () => {
 test.describe('Didaxis Studio — create program (non-admin)', () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  test('TC-018: Non-admin user cannot access program creation (if role model applies)', async ({
+  test('TC-018: Non-admin user cannot access program creation (if role model applies)', { tag: '@e2e' }, async ({
     page,
   }) => {
     const email = process.env.DIDAXIS_NON_ADMIN_EMAIL;

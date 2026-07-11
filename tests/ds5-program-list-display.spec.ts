@@ -176,7 +176,7 @@ test.describe('Didaxis Studio — program list display', () => {
     await gotoProgramsPage(page);
   });
 
-  test('TC-002: Empty state message and create-first-program prompt are shown when no programs exist', async ({
+  test('TC-002: Empty state message and create-first-program prompt are shown when no programs exist', { tag: '@destructive' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -190,7 +190,7 @@ test.describe('Didaxis Studio — program list display', () => {
     await assertEmptyStateVisible(programs);
   });
 
-  test('TC-005: Programs page does not show stale empty state after programs are created', async ({
+  test('TC-005: Programs page does not show stale empty state after programs are created', { tag: '@destructive' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -210,7 +210,7 @@ test.describe('Didaxis Studio — program list display', () => {
     await assertProgramVisible(programs, programName, description);
   });
 
-  test('TC-006: Programs page displays correctly when exactly one program exists', async ({
+  test('TC-006: Programs page displays correctly when exactly one program exists', { tag: '@destructive' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -230,7 +230,7 @@ test.describe('Didaxis Studio — program list display', () => {
     await assertEmptyStateHidden(programs);
   });
 
-  test('TC-009: Programs page transitions correctly from populated list to empty state when all programs are removed', async ({
+  test('TC-009: Programs page transitions correctly from populated list to empty state when all programs are removed', { tag: '@destructive' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -281,7 +281,7 @@ test.describe('Didaxis Studio — program list display', () => {
     await assertEmptyStateVisible(programs);
   });
 
-  test('TC-001: Programs page displays list of existing programs with name and description', async ({
+  test('TC-001: Programs page displays list of existing programs with name and description', { tag: '@smoke' }, async ({
     page,
   }) => {
     const programs = await gotoProgramsPage(page);
@@ -299,7 +299,7 @@ test.describe('Didaxis Studio — program list display', () => {
     await assertProgramVisible(programs, salesName, salesDescription);
   });
 
-  test('TC-003: Programs page does not show empty-state message when at least one program exists', async ({
+  test('TC-003: Programs page does not show empty-state message when at least one program exists', { tag: '@sanity' }, async ({
     page,
   }) => {
     const programs = await gotoProgramsPage(page);
@@ -314,7 +314,7 @@ test.describe('Didaxis Studio — program list display', () => {
     await assertEmptyStateHidden(programs);
   });
 
-  test('TC-004: Programs page does not hide valid program details when list is populated', async ({
+  test('TC-004: Programs page does not hide valid program details when list is populated', { tag: '@sanity' }, async ({
     page,
   }) => {
     const programs = await gotoProgramsPage(page);
@@ -338,7 +338,7 @@ test.describe('Didaxis Studio — program list display', () => {
     }
   });
 
-  test('TC-007: Programs page displays complete list when a typical multi-item dataset exists', async ({
+  test('TC-007: Programs page displays complete list when a typical multi-item dataset exists', { tag: '@regression' }, async ({
     page,
   }) => {
     const programs = new ProgramsPage(page);
@@ -370,7 +370,7 @@ test.describe('Didaxis Studio — program list display', () => {
     await assertEmptyStateHidden(programs);
   });
 
-  test('TC-008: Programs page remains usable and accurate with a large program list', async ({
+  test('TC-008: Programs page remains usable and accurate with a large program list', { tag: '@regression' }, async ({
     page,
   }) => {
     const largeListSize = 50;

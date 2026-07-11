@@ -16,7 +16,7 @@ alwaysApply: false
 ## Guardrails
 
 - A human approves any merge and any bug before it's filed.
-- **Never heal an assertion** — locator drift is POM-only; assertions stay unchanged (enforced by `.cursor/hooks/block-weakened-test.mjs`).
+- **Never heal an assertion** — locator drift is POM-only; assertions stay unchanged (enforced by `.cursor/hooks/block-weakened-test.sh`).
 - **Never merge a repair PR** — human review required for every heal.
 - Stop and escalate if a run fails identically twice, if triage can't classify, or if a heal won't prove green.
 
@@ -40,6 +40,7 @@ alwaysApply: false
 - `ci-failure-triage` — `.cursor/skills/ci-failure-triage/SKILL.md` (classify red runs; coordinator delegates to `triage` subagent or applies skill)
 - `self-heal` — `.cursor/skills/self-heal/SKILL.md` (locator drift repair after triage; POM-only, assertions unchanged)
 - `jira-bug-reporter` — `.cursor/skills/jira-bug-reporter/SKILL.md` (real app bugs only; coordinator delegates to `bug-reporter` subagent)
+- `eval-report` — `.cursor/skills/eval-report/SKILL.md` (**mandatory close-out** — refresh `eval-report.md` before Done)
 
 ## Routing
 
@@ -53,6 +54,7 @@ alwaysApply: false
 | Real app bug | Delegate to `bug-reporter` to file and link — **never heal** |
 | Coverage gap / no ticket | Apply `explore-and-generate` → save plan to `features/<slug>.feature.md` → hand off to `test-writer` |
 | Backlog mode (see below) | Process queued tickets one at a time; do not self-trigger |
+| Task / backlog exit | Apply `eval-report` → update `eval-report.md` → then Done |
 
 ## Delegation
 
@@ -105,7 +107,9 @@ Each additional failure after a heal needs a fresh triage → heal cycle (counts
 
 ## Done
 
-The suite is green for the ticket, a repair PR is open for a drift heal (human merges), or a bug is filed and linked to the story.
+**Mandatory before Done:** apply `eval-report` and update `eval-report.md` (flake, heal + masked-regression=0, generation-gate, ask-vs-guess, top risk, next action). Do not declare done without this refresh — even on stop/escalate paths.
+
+Then Done means: the suite is green for the ticket, a repair PR is open for a drift heal (human merges), or a bug is filed and linked to the story — **and** `eval-report.md` reflects the latest evidence.
 
 ## Backlog mode
 
@@ -139,6 +143,8 @@ For each ticket key in the queue:
 
 Move to the next ticket after step 7, or immediately after a stop condition.
 
+After the **last** ticket in the queue (or when budget/backlog is exhausted): apply `eval-report` once for the whole run, then emit the run summary.
+
 ### Stop conditions (per ticket)
 
 - **Repeated identical failure** — same spec fails with the same error twice; open PR with partial work if any, note outcome in run summary, **do not** add `tests-generated`, move on
@@ -154,7 +160,8 @@ Never merge PRs, close tickets, or file bugs without explicit human approval.
 | PR | One per ticket processed (even if suite is still red after stop) |
 | Jira link | Ticket key in PR title/body; optional remote link |
 | Label | `tests-generated` when suite is green; omitted on stop so ticket re-queues |
-| Run summary | Tickets attempted, PR URLs, stopped/skipped tickets with reason |
+| Eval | Updated `eval-report.md` (mandatory once per backlog run) |
+| Run summary | Tickets attempted, PR URLs, stopped/skipped tickets with reason, eval top risk + next action |
 
 ### Example backlog run
 
@@ -175,14 +182,14 @@ User: DS-3
 → Read DS-3 via Atlassian MCP; apply jira-ticket-analyzer → features/DS-3.feature.md
 → Delegate test-writer → tests/ds3-*.spec.ts
 → npx playwright test tests/ds3-*.spec.ts
-→ Green → done
+→ Green → apply eval-report → update eval-report.md → done
 
 User: run 27151558238
 → Delegate triage → drift (locator rename)
 → Apply self-heal: Playwright MCP snapshot → patch POM → re-run → green (assertions unchanged)
-→ Open repair PR linked to run 27151558238 → human merges → done
+→ Open repair PR linked to run 27151558238 → apply eval-report → human merges → done
 
 User: run 28123886190
 → Delegate triage → real app bug
-→ Delegate bug-reporter → file DS-xxx, link to story → never heal → done
+→ Delegate bug-reporter → file DS-xxx, link to story → never heal → apply eval-report → done
 ```

@@ -96,7 +96,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-001: Edit form opens with existing program data pre-populated', async ({ page }) => {
+  test('TC-001: Edit form opens with existing program data pre-populated', { tag: '@smoke' }, async ({ page }) => {
 
     const programName = uniqueName('Web Development 2026');
 
@@ -120,7 +120,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-002: Valid name update is saved and reflected immediately in list', async ({ page }) => {
+  test('TC-002: Valid name update is saved and reflected immediately in list', { tag: '@smoke' }, async ({ page }) => {
 
     const programs = new ProgramsPage(page);
 
@@ -150,7 +150,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-003: Editing only Description preserves all other fields', async ({ page }) => {
+  test('TC-003: Editing only Description preserves all other fields', { tag: '@sanity' }, async ({ page }) => {
 
     const programName = uniqueName('Web Development 2026');
 
@@ -184,7 +184,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-004: Multiple valid field updates save together correctly', async ({ page }) => {
+  test('TC-004: Multiple valid field updates save together correctly', { tag: '@sanity' }, async ({ page }) => {
 
     const programs = new ProgramsPage(page);
 
@@ -222,7 +222,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-005: Save is blocked when Name is cleared', async ({ page }) => {
+  test('TC-005: Save is blocked when Name is cleared', { tag: '@sanity' }, async ({ page }) => {
 
     const programs = new ProgramsPage(page);
 
@@ -250,7 +250,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-006: Duplicate program name is rejected', async ({ page }) => {
+  test('TC-006: Duplicate program name is rejected', { tag: '@sanity' }, async ({ page }) => {
 
     const programs = new ProgramsPage(page);
 
@@ -288,7 +288,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-007: Invalid over-limit Name input is not accepted', async ({ page }) => {
+  test('TC-007: Invalid over-limit Name input is not accepted', { tag: '@regression' }, async ({ page }) => {
 
     const programs = new ProgramsPage(page);
 
@@ -324,7 +324,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-008: Canceling edit does not persist unsaved changes', async ({ page }) => {
+  test('TC-008: Canceling edit does not persist unsaved changes', { tag: '@sanity' }, async ({ page }) => {
 
     const programs = new ProgramsPage(page);
 
@@ -356,7 +356,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-009: Name with leading/trailing spaces is handled consistently', async ({ page }) => {
+  test('TC-009: Name with leading/trailing spaces is handled consistently', { tag: '@regression' }, async ({ page }) => {
 
     const programs = new ProgramsPage(page);
 
@@ -396,7 +396,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-010: Name supports valid special characters', async ({ page }) => {
+  test('TC-010: Name supports valid special characters', { tag: '@regression' }, async ({ page }) => {
 
     const programs = new ProgramsPage(page);
 
@@ -430,7 +430,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-011: Description supports max-length boundary value', async ({ page }) => {
+  test('TC-011: Description supports max-length boundary value', { tag: '@regression' }, async ({ page }) => {
 
     const programName = uniqueName('Web Development 2026');
 
@@ -464,7 +464,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-012: Rapid repeated Save clicks do not create inconsistent updates', async ({
+  test('TC-012: Rapid repeated Save clicks do not create inconsistent updates', { tag: '@regression' }, async ({
 
     page,
 
@@ -502,7 +502,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-013: Concurrent update conflict is handled safely', async ({ browser }) => {
+  test('TC-013: Concurrent update conflict is handled safely', { tag: '@e2e' }, async ({ browser }) => {
 
     const programName = uniqueName('Web Development 2026');
 
@@ -612,7 +612,7 @@ test.describe('Didaxis Studio — edit program', () => {
 
 
 
-  test('TC-014: Empty Description behavior follows validation rules', async ({ page }) => {
+  test('TC-014: Empty Description behavior follows validation rules', { tag: '@regression' }, async ({ page }) => {
 
     const programName = uniqueName('Web Development 2026');
 

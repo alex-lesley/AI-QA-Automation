@@ -1,0 +1,76 @@
+---
+description: Always-on Playwright constitution — MUST / SHOULD / WON'T plus agent governance (Proposal + confidence gate). Read on every task.
+alwaysApply: true
+---
+
+# Playwright Constitution
+
+Non-negotiable project law. Details live in `playwright-conventions.mdc` and skills; this is the short form.
+
+## MUST
+
+| Rule | Meaning |
+|------|---------|
+| Role-based locators | Prefer `getByRole` / `getByLabel` / `getByPlaceholder` / `getByText`; `getByTestId` only as escape hatch. Locators live in POMs, never inline in specs. |
+| Web-first assertions | Assert with `expect(locator)…` (auto-wait). No manual sleeps or polling loops. |
+| `storageState` auth | Auth via the setup project’s `storageState`. Credentials from `process.env` only. |
+| Unique self-cleaning data | Every test uses unique data and tears down what it creates (API cleanup fixtures). |
+| One tag per test | Exactly one of `@smoke` \| `@sanity` \| `@regression` \| `@api` \| `@e2e` \| `@destructive` on each `test()` — never on `describe`. `@destructive` only for shared/global state mutation (serial + revert). |
+
+## SHOULD
+
+| Rule | Meaning |
+|------|---------|
+| Faker factories | Happy-path data via `test-data/factories` (Faker); curated invalids in static modules; secrets from env; repeated strings from enums. |
+| Enums for repeated strings | Shared labels, statuses, and routes belong in enums/constants — not copy-pasted strings. |
+| JSDoc on action methods | Document POM action methods (params, side effects, what the page looks like after). |
+
+## WON'T
+
+| Rule | Meaning |
+|------|---------|
+| XPath / CSS-first | Do not reach for XPath or brittle CSS when a role/label locator exists. |
+| `waitForTimeout` | Fixed sleeps are banned. Use web-first `expect` or action auto-waiting. |
+| Hardcoded secrets | No tokens, passwords, or credentials in source. Use env + auth setup. |
+| `any` | No TypeScript `any` in tests or POMs. Prefer proper types, `unknown` + narrowing, or generics. |
+| Weakened assertions | Never loosen, delete, or soften an assertion to go green. |
+| Healing a real bug | If triage says **real app bug**, do not self-heal locators — file a bug. Heal only confirmed test drift. |
+| Tags on `describe` | Tags belong on `test()` only — exactly one of the six allowed tags. Never on `test.describe()`. |
+
+## Agent governance
+
+Behavioral only — not hook-enforced. Applies to every **non-trivial** task (multi-file edits, new specs/POMs, CI/workflow changes, heal/generation, env/convention changes). Skip the Proposal for trivial single-line fixes the user already specified exactly.
+
+### Audit-then-edit
+
+1. **Audit** — read the relevant specs, POMs, conventions, and env/docs first.
+2. **Propose** — emit a Proposal block (below) before writing or editing.
+3. **Edit** — only after the confidence gate allows it (and after human approval when required).
+
+### Proposal (emit before editing)
+
+```text
+Proposal
+- Scope: <files / behaviors you will change>
+- Confidence: <1–10>
+- Rationale: <why this approach>
+- Unknowns: <gaps, guesses, missing inputs — or "none">
+```
+
+### Confidence gate
+
+| Score | Action |
+|------:|--------|
+| **< 5** | **Do not proceed.** Ask for the missing input. |
+| **5–7** | Proceed only with **explicit Unknowns** listed and **human approval**. |
+| **≥ 8** | Proceed with the Proposal on record. |
+
+### Never invent
+
+Do **not** invent a path, enum value, env var name, credential, or user-facing message. **Ask** the human or **explore** the repo/UI (read files, a11y snapshot) until the real value is known.
+
+## Skills & agents (index)
+
+**Skills:** `api-cleanup` (fixture teardown) · `ci-failure-triage` (red CI → bug vs test) · `didaxis-delete-all-programs` (bulk API wipe) · `eval-report` (mandatory close-out reliability metrics) · `explore-and-generate` (coverage gaps → Gherkin) · `exploratory-charter` (feature+risk → charter/findings format) · `jira-bug-reporter` (file DS bugs) · `jira-ticket-analyzer` (ticket → Gherkin) · `pom-conventions` (POM rules) · `self-heal` (locator drift only)
+
+**Agents:** `triage` (classify red CI) · `bug-reporter` (file confirmed bugs) · `test-writer` (plan → spec) · orchestrator rule: `qa-orchestrator.mdc`

@@ -74,11 +74,15 @@ jobs:
           4. If the run is green, open a pull request linked to the Jira ticket (reference the ticket key in the branch name, commit message, and PR title/body). Add the label tests-generated to the PR via gh.
           5. If the run fails due to an app bug, stop on that ticket and summarize the failure; do not open a PR for a red spec.
 
+          After the queue (or budget) ends — mandatory:
+          6. Apply the eval-report skill: refresh eval-report.md (flake, heal success + masked-regression=0, generation-gate, ask-vs-guess) from CI/PR evidence; include top reliability risk and next action in the run summary. Do not invent numbers.
+
           Guardrails:
           - Write only under tests/ (and pages/ if new POM methods are required).
           - One ticket per branch/PR when possible.
           - Do not merge PRs; a human approves merge.
           - Stop when the budget of 5 tickets is reached or the In Progress backlog is exhausted.
+          - Never skip the eval-report close-out.
           EOF
           )"
 

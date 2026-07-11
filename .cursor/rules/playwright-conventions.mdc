@@ -8,7 +8,8 @@ globs: tests/**
 ## Waiting web-first assertions only; never waitForTimeout
 ## Page Objects one per page; locators in constructor; no assertions in POMs
 ## Auth storageState via the setup project; API-login for speed
-## Data unique data (Date.now()); every test cleans up after itself
+## Tags exactly one of @smoke|@sanity|@regression|@api|@e2e|@destructive
+## Data Faker factories + unique self-cleaning; enums; env for secrets
 ## API request fixture for setup/teardown and contract checks
 ## Mocking route/fulfill for 500/503/timeout/empty/malformed
 ## Accessibility axe scan (wcag2a/aa) on key pages + a keyboard-nav check
@@ -140,37 +141,102 @@ test.beforeEach(async ({ page }) => {       // logs in before EVERY test — slo
 
 **Why:** per-test UI login multiplies runtime and adds a flaky dependency to every test. The auth file is git-ignored and regenerated each run (locally and in CI). Credentials come from `process.env`, never hardcoded.
 
-## 5. Test data — unique, self-cleaning, isolated
+## 5. Tags — exactly one importance / layer tag per test
 
-Every test creates its own data with a unique name and cleans up after itself. Tests must not depend on each other or on leftover state.
+Every `test()` gets **exactly one** of these tags. Never tag `test.describe()`.
+
+| Tag | Use for |
+|-----|---------|
+| `@smoke` | Critical path / build gate — fewest tests, highest signal |
+| `@sanity` | Broader health check after deploy or merge |
+| `@regression` | Full functional coverage of a story or area |
+| `@api` | Contract / request-level checks (little or no UI) |
+| `@e2e` | Multi-step UI journeys across pages |
+| `@destructive` | **Only** tests that mutate **shared/global** state (locale, roles, feature flags, org settings). Run serially (`workers=1` / `test.describe.configure({ mode: 'serial' })`). |
+
+A test that creates entities and cleans up **only its own data** keeps an importance/layer tag (`@smoke`, `@regression`, …) — it is **not** `@destructive`.
+
+**State mutation → revert required:** any test that changes durable state (own data **or** shared settings) must register an `afterEach` / `afterAll` (or fixture teardown) that reverts or deletes what it changed. `@destructive` tests must restore the prior global value, not leave the environment altered.
 
 ✅ **Good**
 
 ```tsx
-const unique = (p: string) => `${p}-${Date.now()}`;
+test('creates a program', { tag: '@smoke' }, async ({ page }) => { /* … */ });
 
-test('creates a program', async ({ page, request }) => {
-  const name = unique('Web Dev');
-  // ... create via UI ...
-  await expect(list.row(name)).toBeVisible();
-});
-
-test.afterEach(async ({ request }) => {
-  await cleanupProgramsByPrefix(request, 'Web Dev-');   // API teardown
+test.describe('org locale', () => {
+  test.describe.configure({ mode: 'serial' });
+  test.afterEach(async ({ request }) => {
+    await restoreOrgLocale(request, previousLocale);
+  });
+  test('switches org locale', { tag: '@destructive' }, async ({ page }) => { /* … */ });
 });
 ```
 
 ❌ **Bad**
 
 ```tsx
-test('creates a program', async ({ page }) => {
-  await form.createProgram('Web Development');   // same name every run → collides on 2nd run
-});                                              // no cleanup → pollutes the next run / CI
+test.describe('create program', { tag: '@smoke' }, () => { /* tag on describe */ });
+test('creates a program', { tag: ['@smoke', '@regression'] }, async () => { /* two tags */ });
+test('toggles feature flag', { tag: '@smoke' }, async () => { /* shared state without @destructive or revert */ });
 ```
 
-**Why:** shared or static data makes tests order-dependent and flaky in parallel. `Date.now()` keeps names unique; API cleanup is faster and more reliable than clicking through the UI.
+**Why:** one tag keeps CI slices (`npm run test:smoke`, …) unambiguous. `@destructive` is reserved for cross-test pollution risk so it can run alone and always revert.
 
-## 6. API testing — use the `request` fixture for setup, teardown, and contracts
+## 6. Test data — factories, curated invalids, env, enums
+
+Happy-path payloads come from **Faker factories** under `test-data/factories/`. Curated invalid / boundary inputs live in static `.ts` modules (not Faker). Secrets and URLs come from `process.env`. Repeated paths, labels, and messages live in enums/constants. Every test still uses **unique** data and **cleans up** what it owns (API fixtures preferred).
+
+| Source | Put here |
+|--------|----------|
+| Happy-path / varied valid data | `test-data/factories/*.factory.ts` (Faker) |
+| Invalid, empty, too-long, unicode edge cases | `test-data/*.invalid.ts` (curated arrays/objects) |
+| Credentials, base URL, tokens | `process.env` (see `.env.example`) |
+| Routes, toast copy, status labels used in many specs | `test-data/enums.ts` (or domain enums) |
+
+✅ **Good — factory**
+
+```tsx
+// test-data/factories/program.factory.ts
+import { faker } from '@faker-js/faker';
+
+export type ProgramInput = { name: string; description: string };
+
+export function buildProgram(
+  overrides: Partial<ProgramInput> = {},
+): ProgramInput {
+  return {
+    name: `Program ${faker.string.alphanumeric(8)}`,
+    description: faker.lorem.sentence(),
+    ...overrides,
+  };
+}
+
+// in a spec
+test('creates a program', { tag: '@smoke' }, async ({ page }) => {
+  const program = buildProgram();
+  // … create via UI / API, then assert …
+});
+```
+
+✅ **Good — cleanup of owned data (still `@smoke`, not `@destructive`)**
+
+```tsx
+test.afterEach(async ({ request }) => {
+  await cleanupProgramsByPrefix(request, 'Program ');
+});
+```
+
+❌ **Bad**
+
+```tsx
+await form.createProgram('Web Development');           // static name → collisions
+const password = 'hunter2';                             // hardcoded secret
+await expect(page.getByText('Program created')).…;   // copy-pasted string vs enum/constant
+```
+
+**Why:** factories keep valid data realistic and unique without littering specs; curated invalids keep negative cases intentional and reviewable; env and enums kill secret leaks and drift from duplicated strings.
+
+## 7. API testing — use the `request` fixture for setup, teardown, and contracts
 
 Use the API for state you don't want to build through the UI, for teardown, and for contract checks. Mix API setup with UI assertions to keep tests fast and focused.
 
@@ -198,7 +264,7 @@ test('list shows a program', async ({ page }) => {
 
 **Why:** the UI is for testing the UI, not for manufacturing prerequisite data. API setup/teardown is an order of magnitude faster and far less flaky.
 
-## 7. Network mocking — make edge cases deterministic
+## 8. Network mocking — make edge cases deterministic
 
 Mock the failures you can't trigger on demand: `500`, `503`, timeout, empty list, malformed payload, slow response. Mock the case you're forcing — never mock the thing you're trying to test.
 
@@ -233,7 +299,7 @@ test('create works', async ({ page }) => {
 
 **Why:** happy-path tests prove the app works when the server behaves; mocking proves it survives when the server misbehaves — which production guarantees. Use `routeFromHAR` to replay a recorded session when you need realistic payloads.
 
-## 8. Accessibility — axe is the floor, keyboard + names are the rest
+## 9. Accessibility — axe is the floor, keyboard + names are the rest
 
 Run an automated scan on key pages, and add the checks axe can't make: keyboard operability and accessible names. Axe catches roughly a third of issues; you own the other two-thirds.
 
@@ -270,7 +336,7 @@ await page.locator('button.icon-edit').click();   // getByRole('button', { name:
 
 **Why:** a control a screen reader can't name is broken the same way a 500 is broken — you just had no test that noticed. If your `getByRole(... name ...)` locators work, your accessible names are sane; if they don't, that failure *is* the accessibility bug. Scope scans with `.include()/.exclude()` for third-party widgets.
 
-## 9. Assertions — web-first by default, soft for multi-check, visual where it earns it
+## 10. Assertions — web-first by default, soft for multi-check, visual where it earns it
 
 Prefer auto-retrying web-first assertions. Use `expect.soft` to collect several checks in one run. Use visual snapshots sparingly, masking dynamic regions.
 
@@ -298,7 +364,7 @@ await expect(page).toHaveScreenshot();             // unmasked timestamps → fa
 
 **Why:** non-retrying assertions race the UI; web-first assertions wait. Unmasked visual snapshots flake on any dynamic content. Soft assertions turn three reruns into one informative failure.
 
-## 10. Anti-flake — flake is a configuration choice
+## 11. Anti-flake — flake is a configuration choice
 
 Retries in CI only, full isolation, pinned locale/timezone, controlled time, trace on first retry.
 
