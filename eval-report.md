@@ -2,10 +2,10 @@
 
 **Maintained by:** `eval-report` skill — **mandatory** orchestrator close-out (see `.cursor/rules/qa-orchestrator.mdc` → Done).  
 **Repo:** [alex-lesley/AI-QA-Automation](https://github.com/alex-lesley/AI-QA-Automation)  
-**Generated:** 2026-07-11  
-**Window:** last **15** `playwright.yml` CI runs (2026-06-18 → 2026-06-25), plus labeled generation PRs and `test-generation.yml` history through 2026-07-06.
+**Generated:** 2026-08-11  
+**Window:** last **15** `playwright.yml` CI runs (2026-06-25 → 2026-08-10), plus labeled generation PRs and `test-generation.yml` history through 2026-08-10.
 
-Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs-guess. Every number below was derived manually from GitHub Actions logs, PR/commit history, and a light session-transcript review.
+Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs-guess. Every number below was derived manually from GitHub Actions logs, PR/commit history, and this session's transcript.
 
 ---
 
@@ -13,11 +13,9 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 
 | | |
 |--|--|
-| **Number** | **1** flaky test result / **~1,031** test results ≈ **0.10%** · **1 / 15** runs (6.7%) showed a retry-pass |
-| **How measured** | `gh run list --workflow=playwright.yml --limit 15`, then `gh run view <id> --log` for Playwright summary lines (`N passed` / `N failed` / `N flaky`). Counted Playwright’s **flaky** (failed then passed on retry). Hard fails after retry do **not** count as flake. |
-| **What it tells us** | Retry-passes are rare in this window; the one flake was `ds2-edit-program` TC-003 (timeout on `locator.click`) in [run 27791380766](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/27791380766). |
-
-**Notable non-flake:** [run 28123886190](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28123886190) — TC-010 failed on attempt + Retry #1 (assertion), then fixed on main — real failure, not flaky green.
+| **Number** | **0** flaky test results / **~280** test results ≈ **0%** · **0 / 15** runs showed a retry-pass |
+| **How measured** | `gh run list --workflow=playwright.yml --limit 15`, then `gh run view <id> --log` for Playwright summary lines (`N passed` / `N failed` / `N flaky`). Recent runs are mostly smoke-only (10 passed each); two older full-suite runs (69 passed each) and one sanity run (22 passed) are included. |
+| **What it tells us** | No retry-passes in the current 15-run window. The last known flake remains [run 27791380766](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/27791380766) (2026-06-18, `ds2-edit-program` TC-003) — outside this window. |
 
 ---
 
@@ -35,9 +33,9 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 
 | | |
 |--|--|
-| **Number** | **1 / 1** (100%) of `tests-generated` PRs met green + conforming + maps-to-AC on first open |
-| **How measured** | PRs with label `tests-generated` → only [#5](https://github.com/alex-lesley/AI-QA-Automation/pull/5) (DS-4). Cross-checked generation job [28166814111](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28166814111) summary (local `12 passed`), commit notes (`waitForTimeout` → `expect.poll`), presence of `features/DS-4.feature.md` from AC, and post-merge Playwright run [28167017985](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28167017985) (**69 passed**). PR branch had **no** status checks before merge (fast-merge); gate used agent-local run + main CI. Later generation crons opened **0** PRs (empty backlog / no tickets). |
-| **What it tells us** | The one generated delivery cleared the gate, but the sample is too small to trust — and merge-without-PR-checks weakens the “first PR” signal. |
+| **Number** | **1 / 1** (100%) of `tests-generated` PRs met green + conforming + maps-to-AC on first open · **0** new generation PRs this run |
+| **How measured** | PRs with label `tests-generated` → only [#5](https://github.com/alex-lesley/AI-QA-Automation/pull/5) (DS-4). Cross-checked generation job [28166814111](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28166814111) summary (local `12 passed`), commit notes (`waitForTimeout` → `expect.poll`), presence of `features/DS-4.feature.md` from AC, and post-merge Playwright run [28167017985](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28167017985) (**69 passed**). Latest [test-generation run 31427100935](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/31427100935) (2026-08-10): **0 tickets** — all 5 In Progress DS tickets already labeled `tests-generated`. |
+| **What it tells us** | The one generated delivery cleared the gate, but the sample is too small to trust. Backlog has been empty since 2026-08-03; new coverage requires unlabeled In Progress intake. |
 
 ---
 
@@ -45,20 +43,20 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 
 | | |
 |--|--|
-| **Number** | **Not instrumented suite-wide.** Sample (this reliability + recent agent work): **asks ≈ 0 blocking**, **guesses ≈ 3–5** material inferences acted on without confirmation |
-| **How measured** | No Cursor metric exists. Reviewed this session’s decisions (e.g. `test:e2e` → tag grep + `test:all`, factory shape, leaving `DIDAXIS_NON_ADMIN_*` vs documenting `ALT_*`) plus a noisy keyword scan of ~12 local agent transcripts (`could you` / `assuming` / etc.) — keyword hits are **not** reliable enough to publish as a ratio. |
-| **What it tells us** | Agents currently prefer shipping over clarifying; without a deliberate ask-log, ask-vs-guess will stay anecdotal and optimism-biased. |
+| **Number** | **Not instrumented suite-wide.** This session: **0 blocking asks**, **0 material guesses** — blocked on missing Jira auth instead of inventing a ticket queue |
+| **How measured** | No Cursor metric exists. This backlog run attempted Atlassian MCP (status: `needsAuth`), confirmed no `ATLASSIAN_*` env vars in the cloud pod, referenced last verified queue from [test-generation run 31427100935](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/31427100935), and recorded `request-environment-setup-actions` for required secrets rather than guessing ticket keys. |
+| **What it tells us** | Auth gaps are now escalated via environment setup actions; once Jira is reachable, ask-vs-guess should be re-measured on actual ticket analysis. |
 
 ---
 
 ## Top reliability risk
 
-**Untagged suite + `test:e2e` now means `--grep @e2e`.** Existing specs still have **no** `@smoke` / `@regression` / … tags, while [`.github/workflows/playwright.yml`](.github/workflows/playwright.yml) still runs `npm run test:e2e`. Once this lands on `main`, CI may run **zero** (or a tiny subset of) tests and report a false green — a worse failure mode than flake.
+**Cloud automation cannot reach Jira.** Atlassian MCP reports `needsAuth` and this pod has no `ATLASSIAN_*` secrets — the cron automation cannot query the backlog, read AC, or apply `tests-generated`. The GitHub Actions `test-generation.yml` workflow has secrets and last confirmed an **empty queue** (2026-08-10), but cloud-agent and GH Actions paths are divergent.
 
-Secondary: heal path unproven; generation-gate n=1 with no required PR checks.
+Secondary: CI runs only `@smoke` (PR) and `@sanity` (push); ~40 `@regression` / `@e2e` / `@destructive` tests never run in `playwright.yml`.
 
 ## Next action
 
-1. **Fix CI entrypoint** to `npm run test:all` (or restore full-suite script name) before merging the tag-script change.  
-2. **Backfill exactly one tag per existing `test()`**, then keep `test:smoke` / `test:destructive` as intentional slices.  
-3. After that, add a tiny CI log parser (or Playwright JSON reporter upload) so flake/heal/generation metrics update without hand-grepping logs.
+1. **Add Atlassian secrets** (`ATLASSIAN_API_TOKEN`, `ATLASSIAN_EMAIL`, `ATLASSIAN_BASE_URL`, `JIRA_PROJECT_KEY`) to the cloud-agent environment **and** authenticate Atlassian MCP in Cursor Settings.  
+2. **Move unlabeled DS stories to In Progress** (or remove stale `tests-generated` labels when re-testing is needed) so the backlog has work.  
+3. Extend CI for `@regression` (and isolated `@destructive`) so generated specs get post-merge signal beyond smoke/sanity.
