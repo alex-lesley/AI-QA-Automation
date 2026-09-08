@@ -2,8 +2,8 @@
 
 **Maintained by:** `eval-report` skill — **mandatory** orchestrator close-out (see `.cursor/rules/qa-orchestrator.mdc` → Done).  
 **Repo:** [alex-lesley/AI-QA-Automation](https://github.com/alex-lesley/AI-QA-Automation)  
-**Generated:** 2026-07-11  
-**Window:** last **15** `playwright.yml` CI runs (2026-06-18 → 2026-06-25), plus labeled generation PRs and `test-generation.yml` history through 2026-07-06.
+**Generated:** 2026-09-08  
+**Window:** last **15** `playwright.yml` CI runs (2026-08-04 → 2026-09-07), plus labeled generation PRs and `test-generation.yml` history through 2026-09-08.
 
 Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs-guess. Every number below was derived manually from GitHub Actions logs, PR/commit history, and a light session-transcript review.
 
@@ -13,11 +13,9 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 
 | | |
 |--|--|
-| **Number** | **1** flaky test result / **~1,031** test results ≈ **0.10%** · **1 / 15** runs (6.7%) showed a retry-pass |
-| **How measured** | `gh run list --workflow=playwright.yml --limit 15`, then `gh run view <id> --log` for Playwright summary lines (`N passed` / `N failed` / `N flaky`). Counted Playwright’s **flaky** (failed then passed on retry). Hard fails after retry do **not** count as flake. |
-| **What it tells us** | Retry-passes are rare in this window; the one flake was `ds2-edit-program` TC-003 (timeout on `locator.click`) in [run 27791380766](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/27791380766). |
-
-**Notable non-flake:** [run 28123886190](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28123886190) — TC-010 failed on attempt + Retry #1 (assertion), then fixed on main — real failure, not flaky green.
+| **Number** | **1** flaky test result / **~209** test results ≈ **0.48%** · **1 / 15** runs (6.7%) showed a retry-pass |
+| **How measured** | `gh run list --workflow=playwright.yml --limit 15`, then `gh run view <id> --log` for Playwright summary lines (`N passed` / `N failed` / `N flaky`). Counted Playwright’s **flaky** (failed then passed on retry). Hard fails after retry do **not** count as flake. Sum of max `passed` per run ≈ 209. |
+| **What it tells us** | Retry-passes remain rare; the one flake was in the Sanity (`@sanity`) job of [run 31528544624](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/31528544624) (2026-08-11). All 15 runs in the window concluded **success**. |
 
 ---
 
@@ -36,8 +34,8 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 | | |
 |--|--|
 | **Number** | **1 / 1** (100%) of `tests-generated` PRs met green + conforming + maps-to-AC on first open |
-| **How measured** | PRs with label `tests-generated` → only [#5](https://github.com/alex-lesley/AI-QA-Automation/pull/5) (DS-4). Cross-checked generation job [28166814111](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28166814111) summary (local `12 passed`), commit notes (`waitForTimeout` → `expect.poll`), presence of `features/DS-4.feature.md` from AC, and post-merge Playwright run [28167017985](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28167017985) (**69 passed**). PR branch had **no** status checks before merge (fast-merge); gate used agent-local run + main CI. Later generation crons opened **0** PRs (empty backlog / no tickets). |
-| **What it tells us** | The one generated delivery cleared the gate, but the sample is too small to trust — and merge-without-PR-checks weakens the “first PR” signal. |
+| **How measured** | PRs with label `tests-generated` → only [#5](https://github.com/alex-lesley/AI-QA-Automation/pull/5) (DS-4). Cross-checked generation job [28166814111](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28166814111) summary (local `12 passed`), presence of `features/DS-4.feature.md` from AC, and post-merge Playwright run [28167017985](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28167017985) (**69 passed**). No new `tests-generated` PRs opened since 2026-06-25; backlog runs since then processed **0** tickets (Jira auth blocked in Cursor Cloud + GH Actions token 401). |
+| **What it tells us** | The one generated delivery cleared the gate, but the sample is too small to trust — and repeated backlog runs cannot add tickets while Jira REST auth fails. |
 
 ---
 
@@ -45,20 +43,21 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 
 | | |
 |--|--|
-| **Number** | **Not instrumented suite-wide.** Sample (this reliability + recent agent work): **asks ≈ 0 blocking**, **guesses ≈ 3–5** material inferences acted on without confirmation |
-| **How measured** | No Cursor metric exists. Reviewed this session’s decisions (e.g. `test:e2e` → tag grep + `test:all`, factory shape, leaving `DIDAXIS_NON_ADMIN_*` vs documenting `ALT_*`) plus a noisy keyword scan of ~12 local agent transcripts (`could you` / `assuming` / etc.) — keyword hits are **not** reliable enough to publish as a ratio. |
-| **What it tells us** | Agents currently prefer shipping over clarifying; without a deliberate ask-log, ask-vs-guess will stay anecdotal and optimism-biased. |
+| **Number** | **Not instrumented suite-wide.** This backlog run (2026-09-08): **asks 0 blocking**, **guesses 0 material** (stopped before inventing ticket data) |
+| **How measured** | No Cursor metric exists. Reviewed this session: Atlassian MCP `needsAuth` (interactive auth unavailable in Cursor Cloud); no `ATLASSIAN_*` env vars in the pod; prior GH Actions run [34165250474](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/34165250474) confirmed REST `/rest/api/3/myself` returns **HTTP 401** and DS JQL returns **0 issues**. Agent did not invent tickets or acceptance criteria. |
+| **What it tells us** | Correct stop on auth failure avoids inventing tickets; ask-vs-guess remains anecdotal without a deliberate ask-log. |
 
 ---
 
 ## Top reliability risk
 
-**Untagged suite + `test:e2e` now means `--grep @e2e`.** Existing specs still have **no** `@smoke` / `@regression` / … tags, while [`.github/workflows/playwright.yml`](.github/workflows/playwright.yml) still runs `npm run test:e2e`. Once this lands on `main`, CI may run **zero** (or a tiny subset of) tests and report a false green — a worse failure mode than flake.
+**Jira API token cannot authenticate for work item read.** Cursor Cloud pods have no `ATLASSIAN_*` secrets and Atlassian MCP requires desktop interactive auth. GH Actions `didaxis_dev` has secrets but `/rest/api/3/myself` returns HTTP 401 and DS JQL returns an empty issue list ([run 34165250474](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/34165250474)). Backlog processing cannot proceed until a token with `read:jira-work` (and ideally `write:jira-work`) successfully returns DS issues for `status = "In Progress"` without `tests-generated`.
 
-Secondary: heal path unproven; generation-gate n=1 with no required PR checks.
+Secondary: heal path unproven; generation-gate n=1 with no new deliveries since June.
 
 ## Next action
 
-1. **Fix CI entrypoint** to `npm run test:all` (or restore full-suite script name) before merging the tag-script change.  
-2. **Backfill exactly one tag per existing `test()`**, then keep `test:smoke` / `test:destructive` as intentional slices.  
-3. After that, add a tiny CI log parser (or Playwright JSON reporter upload) so flake/heal/generation metrics update without hand-grepping logs.
+1. **Re-issue / re-scope `ATLASSIAN_API_TOKEN`** (Atlassian account API token or scoped app) so `/rest/api/3/myself` returns 200 and `project = DS AND status = "In Progress"` returns real issues.  
+2. **Add `ATLASSIAN_*` + `JIRA_PROJECT_KEY` secrets** to the Cursor Cloud Agent environment and authenticate Atlassian MCP in Cursor desktop IDE.  
+3. **Verify** the same secrets in GH Actions `didaxis_dev` before the next cron.  
+4. After auth is restored, re-run backlog orchestrator (budget 5) to process queued tickets.
