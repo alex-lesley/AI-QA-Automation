@@ -2,10 +2,12 @@
 
 **Maintained by:** `eval-report` skill — **mandatory** orchestrator close-out (see `.cursor/rules/qa-orchestrator.mdc` → Done).  
 **Repo:** [alex-lesley/AI-QA-Automation](https://github.com/alex-lesley/AI-QA-Automation)  
-**Generated:** 2026-07-11  
-**Window:** last **15** `playwright.yml` CI runs (2026-06-18 → 2026-06-25), plus labeled generation PRs and `test-generation.yml` history through 2026-07-06.
+**Generated:** 2026-11-03 (updated 19:15 UTC — Tuesday Cursor Automation cron)  
+**Window:** last **15** `playwright.yml` CI runs on `main` (2026-06-18 → 2026-07-11), plus labeled generation PRs and `test-generation.yml` history through 2026-11-03.
 
-Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs-guess. Every number below was derived manually from GitHub Actions logs, PR/commit history, and a light session-transcript review.
+**Backlog runs today (2026-11-03):** GitHub `test-generation.yml` [41560750830](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/41560750830) (~01:36 UTC) and Cursor Automation cron (19:15 UTC) both stopped at **0 / 5** tickets — Jira unreadable (REST **401** in Actions; Atlassian MCP `needsAuth` in Cloud Agent).
+
+Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs-guess. Every number below was derived manually from GitHub Actions logs, PR history, and this session’s transcript.
 
 ---
 
@@ -13,11 +15,11 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 
 | | |
 |--|--|
-| **Number** | **1** flaky test result / **~1,031** test results ≈ **0.10%** · **1 / 15** runs (6.7%) showed a retry-pass |
+| **Number** | **7** flaky test results / **220** test results ≈ **3.2%** · **4 / 15** runs (26.7%) showed ≥1 retry-pass |
 | **How measured** | `gh run list --workflow=playwright.yml --limit 15`, then `gh run view <id> --log` for Playwright summary lines (`N passed` / `N failed` / `N flaky`). Counted Playwright’s **flaky** (failed then passed on retry). Hard fails after retry do **not** count as flake. |
-| **What it tells us** | Retry-passes are rare in this window; the one flake was `ds2-edit-program` TC-003 (timeout on `locator.click`) in [run 27791380766](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/27791380766). |
+| **What it tells us** | Retry-passes are concentrated in create/edit happy paths and duplicate-name flows — e.g. `ds1` TC-002 / TC-004, `ds2` TC-002 / TC-006, `ds3` TC-006, `ds5` TC-003 across runs [37396401058](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/37396401058), [37517886559](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/37517886559), [38453638194](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/38453638194), [39482025408](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/39482025408). |
 
-**Notable non-flake:** [run 28123886190](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28123886190) — TC-010 failed on attempt + Retry #1 (assertion), then fixed on main — real failure, not flaky green.
+**Notable non-flake:** Same window still has hard fails after retry on duplicate-name sanity (e.g. `ds1` TC-008, `ds2` TC-006) — real reds, not flaky greens.
 
 ---
 
@@ -26,7 +28,7 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 | | |
 |--|--|
 | **Number** | **0 / 0** clean heals (no drift-heal attempts in history) · **Masked regressions: 0** |
-| **How measured** | Searched PRs/commits for `heal` / locator-drift repairs (`gh pr list`, `gh search commits`). Only hits are infrastructure ([PR #4](https://github.com/alex-lesley/AI-QA-Automation/pull/4) — self-heal workflow + assertion hook), not a post-triage POM locator heal. No `heal/*` repair PRs found. Masked-regression count = heals that went green only by weakening assertions → **0** (none shipped). |
+| **How measured** | Searched PRs/commits for `heal` / locator-drift repairs (`gh pr list`, title/`heal/*` branch scan). Only hit is infrastructure ([PR #4](https://github.com/alex-lesley/AI-QA-Automation/pull/4) — self-heal workflow + assertion hook), not a post-triage POM locator heal. No `heal/*` repair PRs found. Masked-regression count = heals that went green only by weakening assertions → **0** (none shipped). |
 | **What it tells us** | Heal pipeline exists but is **unexercised** on real drift — success rate is undefined until the first classified drift run is healed and re-proven green with assertions unchanged. |
 
 ---
@@ -36,8 +38,8 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 | | |
 |--|--|
 | **Number** | **1 / 1** (100%) of `tests-generated` PRs met green + conforming + maps-to-AC on first open |
-| **How measured** | PRs with label `tests-generated` → only [#5](https://github.com/alex-lesley/AI-QA-Automation/pull/5) (DS-4). Cross-checked generation job [28166814111](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28166814111) summary (local `12 passed`), commit notes (`waitForTimeout` → `expect.poll`), presence of `features/DS-4.feature.md` from AC, and post-merge Playwright run [28167017985](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/28167017985) (**69 passed**). PR branch had **no** status checks before merge (fast-merge); gate used agent-local run + main CI. Later generation crons opened **0** PRs (empty backlog / no tickets). |
-| **What it tells us** | The one generated delivery cleared the gate, but the sample is too small to trust — and merge-without-PR-checks weakens the “first PR” signal. |
+| **How measured** | PRs with label `tests-generated` → only [#5](https://github.com/alex-lesley/AI-QA-Automation/pull/5) (DS-4). Cross-checked presence of `features/DS-4.feature.md`, conventions, and merge history. Subsequent `test-generation.yml` crons (through [41560750830](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/41560750830) on 2026-11-03) open **eval-only** PRs titled “Jira auth blocked” — **0** new `tests-generated` deliveries in this window. |
+| **What it tells us** | The one generated delivery cleared the gate, but the sample stays n=1; backlog automation has not produced another gated PR while Jira credentials fail. |
 
 ---
 
@@ -45,20 +47,20 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 
 | | |
 |--|--|
-| **Number** | **Not instrumented suite-wide.** Sample (this reliability + recent agent work): **asks ≈ 0 blocking**, **guesses ≈ 3–5** material inferences acted on without confirmation |
-| **How measured** | No Cursor metric exists. Reviewed this session’s decisions (e.g. `test:e2e` → tag grep + `test:all`, factory shape, leaving `DIDAXIS_NON_ADMIN_*` vs documenting `ALT_*`) plus a noisy keyword scan of ~12 local agent transcripts (`could you` / `assuming` / etc.) — keyword hits are **not** reliable enough to publish as a ratio. |
-| **What it tells us** | Agents currently prefer shipping over clarifying; without a deliberate ask-log, ask-vs-guess will stay anecdotal and optimism-biased. |
+| **Number** | **Not instrumented suite-wide.** Backlog sessions (2026-11-03): **asks = 0** blocking questions · **guesses = 0** invented ticket keys / AC / env names |
+| **How measured** | No Cursor metric exists. Reviewed both 2026-11-03 runs: Actions agent reported REST `/rest/api/3/myself` → **401**; Cloud Automation confirmed Atlassian MCP `needsAuth` (no interactive OAuth in cloud) and empty `ATLASSIAN_*` in pod env — did **not** fabricate queue from `features/*.feature.md`. |
+| **What it tells us** | Stopping on auth failure is correct ask-vs-guess behavior; without a durable ask-log, suite-wide ratio remains unmeasured. |
 
 ---
 
 ## Top reliability risk
 
-**Untagged suite + `test:e2e` now means `--grep @e2e`.** Existing specs still have **no** `@smoke` / `@regression` / … tags, while [`.github/workflows/playwright.yml`](.github/workflows/playwright.yml) still runs `npm run test:e2e`. Once this lands on `main`, CI may run **zero** (or a tiny subset of) tests and report a false green — a worse failure mode than flake.
+**Jira access is broken on both automation paths.** GitHub Actions: `GET /rest/api/3/myself` → **401** with configured `ATLASSIAN_EMAIL` / `ATLASSIAN_API_TOKEN`. Cloud Agent: Atlassian MCP requires desktop OAuth (`needsAuth`); no REST credentials in the pod. Pattern repeats since at least 2026-08 (open eval PRs #18–#37), so **no ticket specs can be generated or labeled**.
 
-Secondary: heal path unproven; generation-gate n=1 with no required PR checks.
+Secondary: ~3.2% flake on smoke/sanity slices plus recurring hard fails on duplicate-name cases — worth triage after auth is restored.
 
 ## Next action
 
-1. **Fix CI entrypoint** to `npm run test:all` (or restore full-suite script name) before merging the tag-script change.  
-2. **Backfill exactly one tag per existing `test()`**, then keep `test:smoke` / `test:destructive` as intentional slices.  
-3. After that, add a tiny CI log parser (or Playwright JSON reporter upload) so flake/heal/generation metrics update without hand-grepping logs.
+1. **Rotate/fix `ATLASSIAN_API_TOKEN`** (and confirm `ATLASSIAN_EMAIL` holds a DS project role) in GitHub Actions secrets / runner env; re-run `GET /rest/api/3/myself` until **200**.  
+2. Re-run backlog mode; process In Progress tickets missing `tests-generated`.  
+3. After tickets flow again, triage duplicate-name / create-modal flake with `ci-failure-triage` (do not weaken assertions).
