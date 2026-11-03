@@ -2,8 +2,10 @@
 
 **Maintained by:** `eval-report` skill — **mandatory** orchestrator close-out (see `.cursor/rules/qa-orchestrator.mdc` → Done).  
 **Repo:** [alex-lesley/AI-QA-Automation](https://github.com/alex-lesley/AI-QA-Automation)  
-**Generated:** 2026-11-03  
-**Window:** last **15** `playwright.yml` CI runs (2026-09-28 → 2026-10-27), plus labeled generation PRs and `test-generation.yml` history through 2026-11-03.
+**Generated:** 2026-11-03 (updated 19:15 UTC — Tuesday Cursor Automation cron)  
+**Window:** last **15** `playwright.yml` CI runs on `main` (2026-06-18 → 2026-07-11), plus labeled generation PRs and `test-generation.yml` history through 2026-11-03.
+
+**Backlog runs today (2026-11-03):** GitHub `test-generation.yml` [41560750830](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/41560750830) (~01:36 UTC) and Cursor Automation cron (19:15 UTC) both stopped at **0 / 5** tickets — Jira unreadable (REST **401** in Actions; Atlassian MCP `needsAuth` in Cloud Agent).
 
 Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs-guess. Every number below was derived manually from GitHub Actions logs, PR history, and this session’s transcript.
 
@@ -45,15 +47,15 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 
 | | |
 |--|--|
-| **Number** | **Not instrumented suite-wide.** This backlog session: **asks = 0** blocking questions to a human · **guesses = 0** invented ticket keys / AC / env names (stopped on measured Jira **401**) |
-| **How measured** | No Cursor metric exists. Reviewed this run’s decisions: REST `/rest/api/3/myself` → **401** with `ATLASSIAN_EMAIL` + `ATLASSIAN_API_TOKEN`; did **not** fabricate an In Progress queue from `features/*.feature.md`. |
+| **Number** | **Not instrumented suite-wide.** Backlog sessions (2026-11-03): **asks = 0** blocking questions · **guesses = 0** invented ticket keys / AC / env names |
+| **How measured** | No Cursor metric exists. Reviewed both 2026-11-03 runs: Actions agent reported REST `/rest/api/3/myself` → **401**; Cloud Automation confirmed Atlassian MCP `needsAuth` (no interactive OAuth in cloud) and empty `ATLASSIAN_*` in pod env — did **not** fabricate queue from `features/*.feature.md`. |
 | **What it tells us** | Stopping on auth failure is correct ask-vs-guess behavior; without a durable ask-log, suite-wide ratio remains unmeasured. |
 
 ---
 
 ## Top reliability risk
 
-**Jira API auth is broken for backlog automation.** `GET /rest/api/3/myself` returns **401** with the configured `ATLASSIAN_EMAIL` / `ATLASSIAN_API_TOKEN` against `ATLASSIAN_BASE_URL` (site `legionqaschool.atlassian.net` is reachable; project `DS` cannot be listed). Cron has repeated this since at least 2026-08 (open PRs #18–#36), so **no ticket specs can be generated or labeled**.
+**Jira access is broken on both automation paths.** GitHub Actions: `GET /rest/api/3/myself` → **401** with configured `ATLASSIAN_EMAIL` / `ATLASSIAN_API_TOKEN`. Cloud Agent: Atlassian MCP requires desktop OAuth (`needsAuth`); no REST credentials in the pod. Pattern repeats since at least 2026-08 (open eval PRs #18–#37), so **no ticket specs can be generated or labeled**.
 
 Secondary: ~3.2% flake on smoke/sanity slices plus recurring hard fails on duplicate-name cases — worth triage after auth is restored.
 
