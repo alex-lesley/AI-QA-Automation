@@ -2,8 +2,8 @@
 
 **Maintained by:** `eval-report` skill — **mandatory** orchestrator close-out (see `.cursor/rules/qa-orchestrator.mdc` → Done).  
 **Repo:** [alex-lesley/AI-QA-Automation](https://github.com/alex-lesley/AI-QA-Automation)  
-**Generated:** 2026-11-10  
-**Window:** last **15** `playwright.yml` CI runs (2026-10-06 → 2026-11-03), plus labeled generation PRs through this backlog run.
+**Generated:** 2026-11-10 (last refresh: Tue **19:19 UTC** Cursor Automation cron)  
+**Window:** last **15** `playwright.yml` CI runs (2026-10-06 → 2026-11-10), plus labeled generation PRs through this backlog run.
 
 Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs-guess. Every number below was derived manually from GitHub Actions logs, PR/commit history, and this session’s transcript review.
 
@@ -44,7 +44,7 @@ Cursor has **no built-in telemetry** for flake, heal, generation-gate, or ask-vs
 | | |
 |--|--|
 | **Number** | **Not instrumented suite-wide.** This backlog session: **asks = 0** blocking · **guesses = 0** material inventions (stopped on auth; did not invent ticket keys/AC) |
-| **How measured** | No Cursor metric exists. Reviewed this run’s decisions: Jira `GET /rest/api/3/myself` → **401** with `ATLASSIAN_EMAIL` + `ATLASSIAN_API_TOKEN`; Atlassian MCP `needsAuth` and interactive auth unavailable in this environment. Queue left unread rather than guessed. |
+| **How measured** | No Cursor metric exists. Reviewed both **2026-11-10** backlog attempts (GitHub Actions [test-generation 42740810530](https://github.com/alex-lesley/AI-QA-Automation/actions/runs/42740810530) at 02:09 UTC and this Cursor Automation cron at 19:19 UTC): Atlassian MCP `needsAuth` (no desktop OAuth in cloud pod); no `ATLASSIAN_*` in the agent VM; GH `didaxis_dev` still reports REST **401** on `/rest/api/3/myself`. Queue left unread rather than guessed. |
 | **What it tells us** | Correct stop on missing access; without a durable ask-log, suite-wide ask-vs-guess remains anecdotal. |
 
 ---
@@ -60,3 +60,12 @@ Secondary: elevated flake (~3.8% of results; 33% of recent runs) in smoke/sanity
 1. **Rotate/fix `ATLASSIAN_API_TOKEN`** (and confirm email matches the token owner) until `GET /rest/api/3/myself` returns 200; then re-run backlog mode.  
 2. **Triage recent flaky smoke/sanity failures** (modal `toBeHidden` retries) once ticket generation resumes.  
 3. Optionally add a CI log parser / Playwright JSON reporter upload so flake metrics do not require hand-grepping.
+
+---
+
+## Backlog run log (2026-11-10)
+
+| Trigger | Time (UTC) | Tickets | Outcome |
+|---------|------------|---------|---------|
+| `test-generation.yml` schedule | 02:09 | **0 / 5** | Jira REST **401**; close-out [PR #38](https://github.com/alex-lesley/AI-QA-Automation/pull/38) |
+| Cursor Automation cron (`15 19 * * 2`) | 19:19 | **0 / 5** | Same blocker; eval refreshed on branch `backlog/2026-11-10-eval-report` (no merges) |
